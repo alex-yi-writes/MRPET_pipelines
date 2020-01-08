@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # setup paths
-path_parent=/Volumes/ALEX_DATA/CAMCAN/
+path_parent=/storage/users/yyi/segmentation/
 
 # assign number of CPUs used
 CPUs=3
