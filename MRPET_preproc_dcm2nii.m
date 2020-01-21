@@ -37,7 +37,9 @@ days = [0 2];
 % file-specicfic variables: choose whatever you'd like to convert
 extensions    = '*.IMA';
 filetypes_MRI = {'MoCoSeries';'MPRAGE';'Hippocampus';'GRE3D';'t2_tse'};
+MRI_filenames = {'MT';'MPRAGE';'Hippocampus';'GRE3D';'T2slab'};
 filetypes_PET = {'PET-InFlow_HD*_AC_';'PET-Baseline_HD*_AC_'};
+PET_filenames = {'InFlow';'Baseline'};
 
 %% MRI part
 
@@ -46,7 +48,7 @@ filetypes_PET = {'PET-InFlow_HD*_AC_';'PET-Baseline_HD*_AC_'};
 for id = 1:length(IDs)
     
     for imc = 1:length(filetypes_MRI)
-        fprintf('\n %s \n', filetypes_MRI{imc})
+        fprintf('\n %s, %s \n', filetypes_MRI{imc}, MRI_filenames{imc})
         
         for d = 1:2
             
@@ -92,40 +94,75 @@ for id = 1:length(IDs)
                             flist_dicom_tmp{i2,:} = [ paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(scans).name '/' fnames(i2,1).name ];
                         end
                         flist_dicom = flist_dicom_tmp;
-                        
-                        % generate headers
-%                         hdr = spm_dicom_headers(flist_dicom); % what's happening?!?!?!
-                        if imc == 1 % maintask
-                            fname_string = [num2str(IDs(id)) '_MRI_4D_MT' num2str(d) '_' num2str(scans)];
-                        else
-                            fname_string = [num2str(IDs(id)) '_MRI_4D_' filetypes_MRI{imc} num2str(d) '_' num2str(scans)];
-                        end
-                        
+                                                
                         % run 3D conversion
-                        [s,w] = unix([paths.dcm2nii... % run unix command
-                            ' -f "' fname_string '"'... % specify filename
-                            ' -p y -z n -ba n -o "' ... % specify options (for help run: [s,w] = unix([paths.dcm2nii ' -h']))
-                            paths.dat_4D num2str(IDs(id)) '_' num2str(d) '" ' ... % then, specify the output path
-                            '"' paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '"']) % now specify the dicom path
+                        cd(savepath)
+                        clear matlabbatch
+                        matlabbatch{1}.spm.util.import.dicom.data = flist_dicom;
+                        matlabbatch{1}.spm.util.import.dicom.root = 'flat';
+                        matlabbatch{1}.spm.util.import.dicom.outdir = {savepath};
+                        matlabbatch{1}.spm.util.import.dicom.protfilter = '.*';
+                        matlabbatch{1}.spm.util.import.dicom.convopts.format = 'nii';
+                        matlabbatch{1}.spm.util.import.dicom.convopts.meta = 0;
+                        matlabbatch{1}.spm.util.import.dicom.convopts.icedims = 0;
+                        spm_jobman('run', matlabbatch) % 'run'  laeuft sofort los, 'interactive' laedt alles nochmal in den Batcheditor
+                        
                         clear flist_dicom
+%                         [s,w] = unix([paths.dcm2nii... % run unix command
+%                             ' -f "' fname_string '"'... % specify filename
+%                             ' -p y -z n -ba n -o "' ... % specify options (for help run: [s,w] = unix([paths.dcm2nii ' -h']))
+%                             paths.dat_4D num2str(IDs(id)) '_' num2str(d) '" ' ... % then, specify the output path
+%                             '"' paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '"']) % now specify the dicom path
+%                         clear flist_dicom
                         
                         fprintf('\n\n 3D CONVERT DONE \n\n')
                         
+                        %% 3D to 4D
+                        
+                        % setup directories and working directories
+                        cd(savepath);
+                        fnames_3D = dir('*.nii');
+                        
+                        clear flist_3D_tmp flist_3D flist_4D flist_4D_alt
+                        for i3 = 1:length(fnames_3D)
+                            flist_3D_tmp{i3,:}  = [pwd '/'  fnames_3D(i3,1).name ', 1'];
+                            flist_3D{i3,:}      = [pwd '/'  fnames_3D(i3,1).name];
+                            flist_4D{i3,:}      = flist_3D{i3,1}(1,:);
+                        end
+                        
+                        clear matlabbatch
+                        
+                        % run 4D conversion
+                        matlabbatch{1}.spm.util.cat.vols = flist_4D;
+                        fname_string = [num2str(IDs(id)) '_MRI_4D_' MRI_filenames{imc} num2str(d) '_' num2str(scans) '.nii'];
+                        matlabbatch{1}.spm.util.cat.name = fname_string;
+                        matlabbatch{1}.spm.util.cat.dtype = 4;
+                        matlabbatch{1}.spm.util.cat.RT = NaN;
+                        
+                        spm_jobman('run', matlabbatch) % 'run'  laeuft sofort los, 'interactive' laedt alles nochmal in den Batcheditor
+                        
+                        fprintf('\n\n 4D CONVERT DONE \n\n')
+                        
                         %% move file for preprocessing
+                        movefile([savepath '/' fname_string], ...
+                        [paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/' fname_string])
                         cd(paths.MT); mkdir([num2str(IDs(id))  '_' num2str(d)]);
-                        copyfile([paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/' fname_string '.nii'], ...
-                            [paths.MT num2str(IDs(id)) '_' num2str(d) '/' fname_string '.nii'])
-                        clear seqname matlabbatch
+                        copyfile([paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/' fname_string], ...
+                            [paths.MT num2str(IDs(id)) '_' num2str(d) '/' fname_string])
+                        clear seqname matlabbatch fname_string
                         
                     end
                 elseif numiter < 2
                     
                     clear fnames
+                    cd(paths.dat_3D); mkdir([num2str(IDs(id)) '_' num2str(d)])
+                    cd([paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name])
+                    templist1   = dir(['*' filetypes_MRI{imc} '*' ]);
+                    
                     path_origin = paths.dat_4D; cd(paths.dat_4D); mkdir([num2str(IDs(id)) '_' num2str(d)])
                     
                     cd([paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name])
-                    templist1   = dir(['*' filetypes_MRI{imc} '*' ]);
-                    tempdir1    = templist1.name; cd(tempdir1);
+                    tempdir1    = templist1(1).name; cd(tempdir1);
                     fnames = dir('MR*');
                     
                     cd([paths.dat_3D num2str(IDs(id)) '_' num2str(d)]); mkdir(templist1(1).name);
@@ -136,29 +173,61 @@ for id = 1:length(IDs)
                         flist_dicom_tmp{i2,:} = [ paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '/' fnames(i2,1).name ];
                     end
                     flist_dicom = flist_dicom_tmp;
-                    clear fnames
                     
-                    if imc == 1 % maintask
-                        fname_string = [num2str(IDs(id)) '_MRI_4D_MT' num2str(d)];
-                    else
-                        fname_string = [num2str(IDs(id)) '_MRI_4D_' filetypes_MRI{imc} num2str(d)];
+                    % run 3D conversion
+                    cd(savepath)
+                    clear matlabbatch
+                    matlabbatch{1}.spm.util.import.dicom.data = flist_dicom;
+                    matlabbatch{1}.spm.util.import.dicom.root = 'flat';
+                    matlabbatch{1}.spm.util.import.dicom.outdir = cellstr(savepath);
+                    matlabbatch{1}.spm.util.import.dicom.protfilter = '.*';
+                    matlabbatch{1}.spm.util.import.dicom.convopts.format = 'nii';
+                    matlabbatch{1}.spm.util.import.dicom.convopts.meta = 0;
+                    matlabbatch{1}.spm.util.import.dicom.convopts.icedims = 0;
+                    spm_jobman('run', matlabbatch) % 'run'  laeuft sofort los, 'interactive' laedt alles nochmal in den Batcheditor
+                    
+                    clear flist_dicom
+%                     [s,w] = unix([paths.dcm2nii... % run unix command
+%                         ' -f "' fname_string '"'... % specify filename
+%                         ' -p y -z n -ba n -o "' ... % specify options (for help run: [s,w] = unix([paths.dcm2nii ' -h']))
+%                         paths.dat_4D num2str(IDs(id)) '_' num2str(d) '" ' ... % then, specify the output path
+%                         '"' paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '"']) % now specify the dicom path
+%                     clear flist_dicom
+                    
+                    fprintf('\n\n 3D CONVERT DONE \n\n')
+                    
+                    %% 3D to 4D
+                    
+                    % setup directories and working directories
+                    cd(savepath);
+                    fnames_3D = dir('*.nii');
+                    
+                    clear flist_3D_tmp flist_3D flist_4D flist_4D_alt
+                    for i3 = 1:length(fnames_3D)
+                        flist_3D_tmp{i3,:}  = [pwd '/'  fnames_3D(i3,1).name ', 1'];
+                        flist_3D{i3,:}      = [pwd '/'  fnames_3D(i3,1).name];
+                        flist_4D{i3,:}      = flist_3D{i3,1}(1,:);
                     end
                     
+                    clear matlabbatch
+                    
                     % run 4D conversion
-                    [s,w] = unix([paths.dcm2nii... % run unix command
-                        ' -f "' fname_string '"'... % specify filename
-                        ' -p y -z n -ba n -o "' ... 
-                        paths.dat_4D num2str(IDs(id)) '_' num2str(d) '" ' ... % first, specify the output path
-                         '"' paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '"']) % now specify the dicom path
-                    clear flist_dicom
+                    matlabbatch{1}.spm.util.cat.vols = flist_4D;
+                    fname_string = [num2str(IDs(id)) '_MRI_4D_' MRI_filenames{imc} num2str(d) '.nii'];
+                    matlabbatch{1}.spm.util.cat.name = fname_string;
+                    matlabbatch{1}.spm.util.cat.dtype = 4;
+                    matlabbatch{1}.spm.util.cat.RT = NaN;
+                    
+                    spm_jobman('run', matlabbatch) % 'run'  laeuft sofort los, 'interactive' laedt alles nochmal in den Batcheditor
                     
                     fprintf('\n\n 4D CONVERT DONE \n\n')
                     
-                    
                     %% move file for preprocessing
-                    cd(paths.MT); mkdir([num2str(IDs(id)) '_' num2str(d)]);
-                    copyfile([paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/' fname_string '.nii'], ...
-                        [paths.MT num2str(IDs(id)) '_' num2str(d) '/' fname_string '.nii'])
+                    movefile([savepath '/' fname_string], ...
+                        [paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/' fname_string])
+                    cd(paths.MT); mkdir([num2str(IDs(id))  '_' num2str(d)]);
+                    copyfile([paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/' fname_string], ...
+                        [paths.MT num2str(IDs(id)) '_' num2str(d) '/' fname_string])
                     clear seqname matlabbatch fname_string
                     
                 end
@@ -172,11 +241,10 @@ end
 %% PET part: other
 %% run
 
-% spm fmri
 for id = 1:length(IDs)
     
     for imc = 1:length(filetypes_PET)
-        fprintf('\n %s \n', filetypes_PET{imc})
+        fprintf('\n %s, %s \n', filetypes_PET{imc}, PET_filenames{imc})
         
         for d = 1:2
             
@@ -222,39 +290,75 @@ for id = 1:length(IDs)
                             flist_dicom_tmp{i2,:} = [ paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(scans).name '/' fnames(i2,1).name ];
                         end
                         flist_dicom = flist_dicom_tmp;
-                        
-                        if imc <= seriesnum % maintask
-                            fname_string = [num2str(IDs(id)) '_PET_3D_T' num2str((imc-1)*binsize) '_MT' num2str(d) '_' num2str(scans)];
-                        else
-                            fname_string = [num2str(IDs(id)) '_PET_4D_' filetypes_PET{imc} num2str(d) '_' num2str(scans)];
-                        end
-                        
+                                                
                         % run 3D conversion
-                        [s,w] = unix([paths.dcm2nii... 
-                            ' -f "' fname_string '"'... 
-                            ' -p y -z n -ba n -o "' ...
-                            paths.dat_4D num2str(IDs(id)) '_' num2str(d) '" ' ... 
-                            '"' paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '"']) 
+                        cd(savepath)
+                        clear matlabbatch
+                        matlabbatch{1}.spm.util.import.dicom.data = flist_dicom;
+                        matlabbatch{1}.spm.util.import.dicom.root = 'flat';
+                        matlabbatch{1}.spm.util.import.dicom.outdir = {savepath};
+                        matlabbatch{1}.spm.util.import.dicom.protfilter = '.*';
+                        matlabbatch{1}.spm.util.import.dicom.convopts.format = 'nii';
+                        matlabbatch{1}.spm.util.import.dicom.convopts.meta = 0;
+                        matlabbatch{1}.spm.util.import.dicom.convopts.icedims = 0;
+                        spm_jobman('run', matlabbatch) % 'run'  laeuft sofort los, 'interactive' laedt alles nochmal in den Batcheditor
+                        
                         clear flist_dicom
+%                         [s,w] = unix([paths.dcm2nii... % run unix command
+%                             ' -f "' fname_string '"'... % specify filename
+%                             ' -p y -z n -ba n -o "' ... % specify options (for help run: [s,w] = unix([paths.dcm2nii ' -h']))
+%                             paths.dat_4D num2str(IDs(id)) '_' num2str(d) '" ' ... % then, specify the output path
+%                             '"' paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '"']) % now specify the dicom path
+%                         clear flist_dicom
                         
                         fprintf('\n\n 3D CONVERT DONE \n\n')
-                                               
+                        
+                        %% 3D to 4D
+                        
+                        % setup directories and working directories
+                        cd(savepath);
+                        fnames_3D = dir('*.nii');
+                        
+                        clear flist_3D_tmp flist_3D flist_4D flist_4D_alt
+                        for i3 = 1:length(fnames_3D)
+                            flist_3D_tmp{i3,:}  = [pwd '/'  fnames_3D(i3,1).name ', 1'];
+                            flist_3D{i3,:}      = [pwd '/'  fnames_3D(i3,1).name];
+                            flist_4D{i3,:}      = flist_3D{i3,1}(1,:);
+                        end
+                        
+                        clear matlabbatch
+                        
+                        % run 4D conversion
+                        matlabbatch{1}.spm.util.cat.vols = flist_4D;
+                        fname_string = [num2str(IDs(id)) '_PET_4D_' PET_filenames{imc} num2str(d) '_' num2str(scans) '.nii'];
+                        matlabbatch{1}.spm.util.cat.name = fname_string;
+                        matlabbatch{1}.spm.util.cat.dtype = 4;
+                        matlabbatch{1}.spm.util.cat.RT = NaN;
+                        
+                        spm_jobman('run', matlabbatch) % 'run'  laeuft sofort los, 'interactive' laedt alles nochmal in den Batcheditor
+                        
+                        fprintf('\n\n 4D CONVERT DONE \n\n')
                         
                         %% move file for preprocessing
-                        cd(paths.MT); mkdir([num2str(IDs(id)) '_' num2str(d)]);
-                        cd([paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/'])
-                        copyfile([fname_string '.nii'],[paths.MT num2str(IDs(id)) '_' num2str(d) '/'])
-                        clear seqname matlabbatch fname_string
+                        movefile([savepath '/' fname_string], ...
+                        [paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/' fname_string])
+                    cd(paths.MT); mkdir([num2str(IDs(id))  '_' num2str(d)]);
+                    copyfile([paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/' fname_string], ...
+                        [paths.MT num2str(IDs(id)) '_' num2str(d) '/' fname_string])
+                    clear seqname matlabbatch fname_string
                         
                     end
                 elseif numiter < 2
                     
                     clear fnames
+                    cd(paths.dat_3D); mkdir([num2str(IDs(id)) '_' num2str(d)])
+                    cd([paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name])
+                    templist1   = dir(['*' filetypes_PET{imc} '*' ]);
+                    
                     path_origin = paths.dat_4D; cd(paths.dat_4D); mkdir([num2str(IDs(id)) '_' num2str(d)])
                     
                     cd([paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name])
-                    templist1   = dir(['*' filetypes_PET{imc} '*' ]);
-                    tempdir1    = templist1.name; cd(tempdir1);
+                    tempdir1    = templist1(1).name; cd(tempdir1);
                     fnames = dir('PI*');
                     
                     cd([paths.dat_3D num2str(IDs(id)) '_' num2str(d)]); mkdir(templist1(1).name);
@@ -265,25 +369,61 @@ for id = 1:length(IDs)
                         flist_dicom_tmp{i2,:} = [ paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '/' fnames(i2,1).name ];
                     end
                     flist_dicom = flist_dicom_tmp;
-                    clear fnames
-                    
-                    fname_string = [num2str(IDs(id)) '_PET_4D_' filetypes_PET{imc} num2str(d)];
                     
                     % run 3D conversion
-                    [s,w] = unix([paths.dcm2nii... 
-                        ' -f "' fname_string '"'... 
-                        ' -p y -z n -ba n -o "' ... 
-                        paths.dat_4D num2str(IDs(id)) '_' num2str(d) '" ' ... 
-                         '"' paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '"'])
+                    cd(savepath)
+                    clear matlabbatch
+                    matlabbatch{1}.spm.util.import.dicom.data = flist_dicom;
+                    matlabbatch{1}.spm.util.import.dicom.root = 'flat';
+                    matlabbatch{1}.spm.util.import.dicom.outdir = {savepath};
+                    matlabbatch{1}.spm.util.import.dicom.protfilter = '.*';
+                    matlabbatch{1}.spm.util.import.dicom.convopts.format = 'nii';
+                    matlabbatch{1}.spm.util.import.dicom.convopts.meta = 0;
+                    matlabbatch{1}.spm.util.import.dicom.convopts.icedims = 0;
+                    spm_jobman('run', matlabbatch) % 'run'  laeuft sofort los, 'interactive' laedt alles nochmal in den Batcheditor
+                    
                     clear flist_dicom
+%                     [s,w] = unix([paths.dcm2nii... % run unix command
+%                         ' -f "' fname_string '"'... % specify filename
+%                         ' -p y -z n -ba n -o "' ... % specify options (for help run: [s,w] = unix([paths.dcm2nii ' -h']))
+%                         paths.dat_4D num2str(IDs(id)) '_' num2str(d) '" ' ... % then, specify the output path
+%                         '"' paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '"']) % now specify the dicom path
+%                     clear flist_dicom
                     
                     fprintf('\n\n 3D CONVERT DONE \n\n')
                     
+                    %% 3D to 4D
+                    
+                    % setup directories and working directories
+                    cd(savepath);
+                    fnames_3D = dir('*.nii');
+                    
+                    clear flist_3D_tmp flist_3D flist_4D flist_4D_alt
+                    for i3 = 1:length(fnames_3D)
+                        flist_3D_tmp{i3,:}  = [pwd '/'  fnames_3D(i3,1).name ', 1'];
+                        flist_3D{i3,:}      = [pwd '/'  fnames_3D(i3,1).name];
+                        flist_4D{i3,:}      = flist_3D{i3,1}(1,:);
+                    end
+                    
+                    clear matlabbatch
+                    
+                    % run 4D conversion
+                    matlabbatch{1}.spm.util.cat.vols = flist_4D;
+                    fname_string = [num2str(IDs(id)) '_PET_4D_' PET_filenames{imc} num2str(d) '.nii'];
+                    matlabbatch{1}.spm.util.cat.name = fname_string;
+                    matlabbatch{1}.spm.util.cat.dtype = 4;
+                    matlabbatch{1}.spm.util.cat.RT = NaN;
+                    
+                    spm_jobman('run', matlabbatch) % 'run'  laeuft sofort los, 'interactive' laedt alles nochmal in den Batcheditor
+                    
+                    fprintf('\n\n 4D CONVERT DONE \n\n')
                     
                     %% move file for preprocessing
-                    cd(paths.MT); mkdir([num2str(IDs(id)) '_' num2str(d)]);
-                    cd([paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/'])
-                    copyfile([fname_string '.nii'],[paths.MT num2str(IDs(id)) '_' num2str(d) '/'])
+                    movefile([savepath '/' fname_string], ...
+                        [paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/' fname_string])
+                    cd(paths.MT); mkdir([num2str(IDs(id))  '_' num2str(d)]);
+                    copyfile([paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/' fname_string], ...
+                        [paths.MT num2str(IDs(id)) '_' num2str(d) '/' fname_string])
                     clear seqname matlabbatch fname_string
                     
                 end
@@ -300,6 +440,7 @@ end
 filetypes_pTask = {'PET-Task-MoCo*T0*_AC_';'PET-Task-MoCo*T300_*_AC_';'PET-Task-MoCo*T600*_AC_';'PET-Task-MoCo*T900*_AC_';...
     'PET-Task-MoCo*T1200*_AC_';'PET-Task-MoCo*T1500*_AC_';'PET-Task-MoCo*T1800*_AC_';'PET-Task-MoCo*T2100*_AC_';...
     'PET-Task-MoCo*T2400*_AC_';'PET-Task-MoCo*T2700*_AC_';'PET-Task-MoCo*T3000_*_AC_'};
+binname       = {'T0';'T300';'T600';'T900';'T1200';'T1500';'T1800';'T2100';'T2400';'T2700';'T3000'};
 seriesnum     = numel(~isnan(cell2mat(strfind(filetypes_pTask,'Task')))); % see how many binned PET data there are
 binsize       = 300; % how long are the time bins for now?
 
@@ -316,7 +457,6 @@ for id = 1:length(IDs)
                 
                 fprintf('\n ID: %d\n', IDs(id))
                 
-                
                 spm_jobman('initcfg')
                 clear matlabbatch
                 
@@ -328,102 +468,58 @@ for id = 1:length(IDs)
                 tmpfname = dir('study*'); cd(tmpfname.name)
                 numiter   = length(dir(['*' filetypes_pTask{imc} '*' ]));
                 
-                if numiter >= 2
-                    
-                    clear fnames
-                    cd(paths.dat_3D); mkdir([num2str(IDs(id)) '_' num2str(d)])
-                    cd([paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name])
-                    templist1   = dir(['*' filetypes_pTask{imc} '*' ]);
-                    
-                    for scans = 1:numiter
-                        
-                        clear fnames
-                        path_origin = paths.dat_4D; cd(paths.dat_4D); mkdir([num2str(IDs(id)) '_' num2str(d)])
-                        
-                        cd([paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name])
-                        tempdir1    = templist1(scans).name; cd(tempdir1);
-                        fnames = dir('PI*');
-                        
-                        cd([paths.dat_3D num2str(IDs(id)) '_' num2str(d)]); mkdir(templist1(scans).name);
-                        savepath    = [paths.dat_3D num2str(IDs(id)) '_' num2str(d) '/' templist1(scans).name '/'];
-                        
-                        clear flist_dicom flist_dicom_tmp
-                        for i2 = 1:length(fnames) % assemble into a list
-                            flist_dicom_tmp{i2,:} = [ paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(scans).name '/' fnames(i2,1).name ];
-                        end
-                        flist_dicom = flist_dicom_tmp;
-                        
-                        if imc <= seriesnum % maintask
-                            fname_string = [num2str(IDs(id)) '_PET_3D_T' num2str((imc-1)*binsize) '_MT' num2str(d) '_' num2str(scans)];
-                        else
-                            fname_string = [num2str(IDs(id)) '_PET_4D_' filetypes_pTask{imc} num2str(d) '_' num2str(scans)];
-                        end
-                        
-                        % run 3D conversion
-                        [s,w] = unix([paths.dcm2nii... 
-                            ' -f "' fname_string '"'... 
-                            ' -p y -z n -ba n -o "' ...
-                            paths.dat_4D num2str(IDs(id)) '_' num2str(d) '" ' ... 
-                            '"' paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '"']) 
-                        clear flist_dicom
-                        
-                        fprintf('\n\n 3D CONVERT DONE \n\n')
-                                               
-                        
-                        %% move file for preprocessing
-                        cd(paths.MT); mkdir([num2str(IDs(id)) '_' num2str(d)]);
-                        cd([paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/'])
-                        copyfile([fname_string '.nii'],[paths.MT num2str(IDs(id)) '_' num2str(d) '/'])
-                        clear seqname matlabbatch fname_string
-                        
-                    end
-                elseif numiter < 2
-                    
-                    clear fnames
-                    path_origin = paths.dat_4D; cd(paths.dat_4D); mkdir([num2str(IDs(id)) '_' num2str(d)])
-                    
-                    cd([paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name])
-                    templist1   = dir(['*' filetypes_pTask{imc} '*' ]);
-                    tempdir1    = templist1.name; cd(tempdir1);
-                    fnames = dir('PI*');
-                    
-                    cd([paths.dat_3D num2str(IDs(id)) '_' num2str(d)]); mkdir(templist1(1).name);
-                    savepath    = [paths.dat_3D num2str(IDs(id)) '_' num2str(d) '/' templist1(1).name '/'];
-                    
-                    clear flist_dicom flist_dicom_tmp
-                    for i2 = 1:length(fnames) % assemble into a list
-                        flist_dicom_tmp{i2,:} = [ paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '/' fnames(i2,1).name ];
-                    end
-                    flist_dicom = flist_dicom_tmp;
-                    clear fnames
-                    
-                    if imc <= seriesnum % maintask
-                        fname_string = [num2str(IDs(id)) '_PET_3D_T' num2str((imc-1)*binsize) '_MT' num2str(d)];
-                    else
-                        fname_string = [num2str(IDs(id)) '_PET_4D_' filetypes_pTask{imc} num2str(d)];
-                    end
-                    
-                    % run 3D conversion
-                    [s,w] = unix([paths.dcm2nii... 
-                        ' -f "' fname_string '"'... 
-                        ' -p y -z n -ba n -o "' ... 
-                        paths.dat_4D num2str(IDs(id)) '_' num2str(d) '" ' ... 
-                         '"' paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '"'])
-                    clear flist_dicom
-                    
-                    fprintf('\n\n 3D CONVERT DONE \n\n')
-                    
-                    
-                    %% move file for preprocessing
-                    cd(paths.MT); mkdir([num2str(IDs(id)) '_' num2str(d)]);
-                    cd([paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/'])
-                    copyfile([fname_string '.nii'],[paths.MT num2str(IDs(id)) '_' num2str(d) '/'])
-                    clear seqname matlabbatch fname_string
-                    
+                clear fnames
+                path_origin = paths.dat_4D; cd(paths.dat_4D); mkdir([num2str(IDs(id)) '_' num2str(d)])
+                
+                cd([paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name])
+                templist1   = dir(['*' filetypes_pTask{imc} '*' ]);
+                tempdir1    = templist1.name; cd(tempdir1);
+                fnames = dir('PI*');
+                
+                cd([paths.dat_3D num2str(IDs(id)) '_' num2str(d)]); mkdir(templist1(1).name);
+                savepath    = [paths.dat_3D num2str(IDs(id)) '_' num2str(d) '/' templist1(1).name '/'];
+                
+                clear flist_dicom flist_dicom_tmp
+                for i2 = 1:length(fnames) % assemble into a list
+                    flist_dicom_tmp{i2,:} = [ paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '/' fnames(i2,1).name ];
                 end
+                flist_dicom = flist_dicom_tmp;
+                clear fnames
+                
+                fname_string = [num2str(IDs(id)) '_PET_3D_T' num2str((imc-1)*binsize) '_MT' num2str(d) '.nii'];
+
+                % run 3D conversion
+                cd(savepath)
+                clear matlabbatch
+                matlabbatch{1}.spm.util.import.dicom.data = flist_dicom;
+                matlabbatch{1}.spm.util.import.dicom.root = 'flat';
+                matlabbatch{1}.spm.util.import.dicom.outdir = {savepath};
+                matlabbatch{1}.spm.util.import.dicom.protfilter = '.*';
+                matlabbatch{1}.spm.util.import.dicom.convopts.format = 'nii';
+                matlabbatch{1}.spm.util.import.dicom.convopts.meta = 0;
+                matlabbatch{1}.spm.util.import.dicom.convopts.icedims = 0;
+                spm_jobman('run', matlabbatch) % 'run'  laeuft sofort los, 'interactive' laedt alles nochmal in den Batcheditor
+                
+                clear flist_dicom
+%                 [s,w] = unix([paths.dcm2nii... % run unix command
+%                     ' -f "' fname_string '"'... % specify filename
+%                     ' -p y -z n -ba n -o "' ... % specify options (for help run: [s,w] = unix([paths.dcm2nii ' -h']))
+%                     paths.dat_4D num2str(IDs(id)) '_' num2str(d) '" ' ... % then, specify the output path
+%                     '"' paths.raw num2str(IDs(id)) '_' num2str(d) '/' tmpfname.name '/' templist1(1).name '"']) % now specify the dicom path
+%                 clear flist_dicom
+%                 
+                fprintf('\n\n 3D CONVERT DONE \n\n')
+                
+                
+                %% move file for preprocessing
+                cd(paths.dat_4D); mkdir([num2str(IDs(id)) '_' num2str(d)]);
+                cd([paths.dat_3D num2str(IDs(id)) '_' num2str(d) '/' tempdir1])
+                tmp=dir('*.nii');tmp2=tmp.name;
+                copyfile(tmp2,[paths.dat_4D num2str(IDs(id)) '_' num2str(d) '/' fname_string])
+                clear seqname matlabbatch fname_string tmp tmp2
+                
             end
         end
-        
     end
     
 end
@@ -450,7 +546,7 @@ for id = 1:length(IDs)
             matlabbatch{1}.spm.util.cat.name = [ num2str(IDs(id)) '_PET_4D_MT' num2str(d) '.nii'];
             matlabbatch{1}.spm.util.cat.dtype = 4;
             matlabbatch{1}.spm.util.cat.RT = binsize;
-            spm_jobman('run', matlabbatch) % run batch
+            spm_jobman('run', matlabbatch) % 'run'  laeuft sofort los, 'interactive' laedt alles nochmal in den Batcheditor
             
             fprintf('\n\n 4D CONVERT DONE \n\n')
             
