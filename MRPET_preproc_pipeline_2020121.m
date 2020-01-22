@@ -11,6 +11,9 @@
 %% work log
 
 %   03-12-2019    created the script
+%   18-01-2020    modified PET coregistration bit: now it incorporates T1
+%       segmentation process as well
+%   19-01-2020    added In-Flow and baseline preprocessing as well
 
 %% set environmental variables
 
@@ -499,7 +502,7 @@ for id = 1:length(IDs)
         else
             % Freesurfer segmentation, if .mgh use mri_read from FreeSurfer/Matlab
             clear Mask CurPET_task CurPET_flow CurPET_BSL
-            Mask   =[ paths.seg num2str(IDs(id)) '_' num2str(d) '/' num2str(IDs(id)) num2str(d) '/mri/aparc+aseg.nii'];
+            Mask   =[ paths.seg num2str(IDs(id)) num2str(d) '/mri/aparc+aseg.nii'];
             
             % 4-D PET file
             PETtask = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/c' num2str(IDs(id)) '_PET_4D_MT' num2str(days(id,d)) '.nii'];
@@ -639,7 +642,4 @@ for id = 1:length(IDs)
         end
     end
 end
-
-
-%% Plot TACs
 
