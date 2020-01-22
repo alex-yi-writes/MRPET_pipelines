@@ -317,7 +317,7 @@ for id = 1:length(IDs)
                         
                         % setup directories and working directories
                         cd(savepath);
-                        fnames_3D = dir('*.nii');
+                        fnames_3D = dir('s*.nii');
                         
                         clear flist_3D_tmp flist_3D flist_4D flist_4D_alt
                         for i3 = 1:length(fnames_3D)
@@ -396,7 +396,7 @@ for id = 1:length(IDs)
                     
                     % setup directories and working directories
                     cd(savepath);
-                    fnames_3D = dir('*.nii');
+                    fnames_3D = dir('s*.nii');
                     
                     clear flist_3D_tmp flist_3D flist_4D flist_4D_alt
                     for i3 = 1:length(fnames_3D)
