@@ -377,9 +377,10 @@ for id = 1:length(IDs)
                     sMRI_resliced = cellstr([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/r' num2str(IDs(id)) '_MRI_4D_MPRAGE' num2str(days(id,d)) '.nii']);
                     
                     % step (3)
-                    [config] = preproc_coregister_estwrt_PET(IDs(id),PETtask_mean,sMRI_resliced,PETtask);
-                    [config] = preproc_coregister_estwrt_PET(IDs(id),PETflow_mean,sMRI_resliced,PETflow);
-                    [config] = preproc_coregister_estwrt_PET(IDs(id),PETbsl_mean,sMRI_resliced,PETbsl);
+                    [config] = preproc_coregister_wrt_PET(IDs(id),sMRI_resliced,PETtask);
+                    [config] = preproc_coregister_wrt_PET(IDs(id),sMRI_resliced,PETflow);
+%                     [config] = preproc_coregister_estwrt_PET(IDs(id),PETflow_mean,sMRI_resliced,PETflow);
+                    [config] = preproc_coregister_wrt_PET(IDs(id),sMRI_resliced,PETbsl);
                     
                 catch
                     sMRI = cellstr([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_MRI_4D_MPRAGE' num2str(days(id,d)) '_1.nii']);
@@ -398,9 +399,10 @@ for id = 1:length(IDs)
                     sMRI_resliced = cellstr([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/r' num2str(IDs(id)) '_MRI_4D_MPRAGE' num2str(days(id,d)) '_1.nii']);
                     
                     % step (3)
-                    [config] = preproc_coregister_estwrt_PET(IDs(id),PETtask_mean,sMRI_resliced,PETtask);
-                    [config] = preproc_coregister_estwrt_PET(IDs(id),PETflow_mean,sMRI_resliced,PETflow);
-                    [config] = preproc_coregister_estwrt_PET(IDs(id),PETbsl_mean,sMRI_resliced,PETbsl);
+                    [config] = preproc_coregister_wrt_PET(IDs(id),sMRI_resliced,PETtask);
+                    [config] = preproc_coregister_wrt_PET(IDs(id),sMRI_resliced,PETflow);
+%                     [config] = preproc_coregister_estwrt_PET(IDs(id),PETflow_mean,sMRI_resliced,PETflow);
+                    [config] = preproc_coregister_wrt_PET(IDs(id),sMRI_resliced,PETbsl);
                     
                 end
                 fg_3_coregistered = 1;
@@ -484,6 +486,7 @@ end
 %% Extract TACs
 
 %% Define input parameters
+% this part is very heavy for some computers
 
 addpath('/Users/yeojin/Documents/MATLAB/NIfTI_20140122')
 
@@ -505,9 +508,9 @@ for id = 1:length(IDs)
             Mask   =[ paths.seg num2str(IDs(id)) num2str(d) '/mri/aparc+aseg.nii'];
             
             % 4-D PET file
-            PETtask = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/c' num2str(IDs(id)) '_PET_4D_MT' num2str(days(id,d)) '.nii'];
-            PETflow = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/c' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii'];
-            PETbsl  = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/c' num2str(IDs(id)) '_PET_4D_Baseline' num2str(days(id,d)) '.nii'];
+            PETtask = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/k' num2str(IDs(id)) '_PET_4D_MT' num2str(days(id,d)) '.nii'];
+            PETflow = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/k' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii'];
+            PETbsl  = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/k' num2str(IDs(id)) '_PET_4D_Baseline' num2str(days(id,d)) '.nii'];
             
             %% Read in FreeSurfer mask data
             ROI=load_nii(Mask);
@@ -622,11 +625,11 @@ for id = 1:length(IDs)
             TACDATA_Task=TACDATA; clear TACDATA
             
             Lengths=[10*ones(30,1); 60*ones(55,1)];
-            tt1=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)];
+            tt1=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)]; clear Lengths
             Lengths=60*ones(15,1);
-            tt2=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)];
+            tt2=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)]; clear Lengths
             Lengths=300*ones(11,1);
-            tt3=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)];
+            tt3=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)]; clear Lengths
             Times=[tt1; tt2+95*60; tt3+115*60]
             
             Cer=[TACDATA_InFlow.CerC.Bilateral.tac; TACDATA_Baseline.CerC.Bilateral.tac; TACDATA_Task.CerC.Bilateral.tac];
