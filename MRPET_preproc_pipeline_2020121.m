@@ -636,9 +636,13 @@ for id = 1:length(IDs)
             Put=[TACDATA_InFlow.Put.Bilateral.tac; TACDATA_Baseline.Put.Bilateral.tac; TACDATA_Task.Put.Bilateral.tac];
             Caud=[TACDATA_InFlow.Caud.Bilateral.tac; TACDATA_Baseline.Caud.Bilateral.tac; TACDATA_Task.Caud.Bilateral.tac];
             tmid=mean(Times,2)/60;
+            
+            % now draw
+            figure;
             plot(tmid,Cer,'ko-',tmid,Put,'ro-',tmid,Caud,'bo-');
             xlabel('Time (min)'); ylabel('Radioactivity (Bq/mL)');
             legend('Cerebellum','Putamen','Caudate');
+            ax = gca; ax.YAxis.Exponent = 0;
             cd(paths.figures)
             print('-dpdf','-bestfit',[ num2str(IDs(id)) num2str(d) '.pdf']);
             
