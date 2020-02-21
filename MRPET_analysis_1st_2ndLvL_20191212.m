@@ -20,12 +20,12 @@ paths.analyses= [paths.parent 'E_data/EB_cleaned/EBD_mrpet/RewardTask/MRI/'];
 paths.behav   = [paths.parent 'E_data/EA_raw/EAC_behav/MRPET/'];
 
 % add toolboxes and functions
-addpath(paths.spm)
+% addpath(paths.spm)
 addpath(paths.funx)
 
 % IDs
-IDs  = [4001];
-days = [0 2];
+IDs = [4001 4002 4003 4004 4005 4006 4007];
+days = [1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0]; 
 d1m  = [1 2]; % 1=immediate 2=delayed
 d2m  = [1 2];
 
@@ -92,7 +92,7 @@ for id = 1:length(IDs)
             matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t0    = 25; % microtime onset
             
             matlabbatch{1}.spm.stats.fmri_spec.sess.scans        = cellstr([paths.preproc num2str(IDs(id)) '_' num2str(d) '/' ...
-                'swra' num2str(IDs(id)) '_MRI_4D_MT' num2str(d) '.nii']);
+                'sra' num2str(IDs(id)) '_MRI_4D_MT' num2str(d) '.nii']);
             
             
             % reward condition
@@ -189,8 +189,8 @@ for id = 1:length(IDs)
             
             c_t_6   = [0 0 0 0 1 -1];  % feedbacks rew > neu
             c_t_7   = [0 0 0 0 -1 1];  % feedbacks neu > rew
-            c_t_8   = [0 0 0 0 1 0];   % feedbacks rew
-            c_t_9   = [0 0 0 0 0 1];   % feedbacks neu
+            c_t_8   = [0 0 -1 0 1 0];   % feedbacks rew > null
+            c_t_9   = [0 0 -1 0 0 1];   % feedbacks neu > null
             
             c_t_10  = [-1 0 0 0 1];    % reward: feedback > stim
             c_t_11  = [0 -1 0 0 0 1];  % neutral: feedback > stim
@@ -244,11 +244,11 @@ for id = 1:length(IDs)
             matlabbatch{1}.spm.stats.con.consess{9}.tcon.weights = c_t_7;
             matlabbatch{1}.spm.stats.con.consess{9}.tcon.sessrep = 'none';
             
-            matlabbatch{1}.spm.stats.con.consess{10}.tcon.name = 'feedbacks: rew';
+            matlabbatch{1}.spm.stats.con.consess{10}.tcon.name = 'feedbacks: rew > null';
             matlabbatch{1}.spm.stats.con.consess{10}.tcon.weights = c_t_8;
             matlabbatch{1}.spm.stats.con.consess{10}.tcon.sessrep = 'none';
             
-            matlabbatch{1}.spm.stats.con.consess{11}.tcon.name = 'feedbacks: neu';
+            matlabbatch{1}.spm.stats.con.consess{11}.tcon.name = 'feedbacks: neu > null';
             matlabbatch{1}.spm.stats.con.consess{11}.tcon.weights = c_t_9;
             matlabbatch{1}.spm.stats.con.consess{11}.tcon.sessrep = 'none';
             
@@ -304,14 +304,15 @@ paths.save2nd = [paths.parent 'E_data/EB_cleaned/EBD_mrpet/RewardTask/MRI/2ndLvL
 paths.doc     = [paths.parent 'C_writings/CB_figures/MRPET/MainTask/MRI/'];
 
 % add toolboxes and functions
-addpath(paths.spm)
+% addpath(paths.spm)
 addpath(paths.funx)
 
 % IDs
-IDs  = [4001];
-days = [0 2];
+IDs = [4001 4002 4003 4004 4005 4006 4007];
+days = [1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0]; 
 d1m  = [1 2]; % 1=immediate 2=delayed
 d2m  = [1 2];
+
 
 % load experimental details
 expdat = [];
@@ -484,28 +485,6 @@ matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
 matlabbatch{1}.spm.stats.con.delete = 1;    % 1 means delete, 0 means append
 spm_jobman('run', matlabbatch) % run batch
 
-% document results
-clear matlabbatch
-spm_jobman('initcfg');      % initiate job manager
-matlabbatch{1}.spm.stats.results.spmmat = cellstr([dir_spm '/SPM.mat']);
-matlabbatch{1}.spm.stats.results.conspec.titlestr = cellstr('Stim_v_Fix_uncorr');
-matlabbatch{1}.spm.stats.results.conspec.contrasts = inf;
-matlabbatch{1}.spm.stats.results.conspec.threshdesc = 'none';
-matlabbatch{1}.spm.stats.results.conspec.thresh = 0.01;
-matlabbatch{1}.spm.stats.results.conspec.extent = 0;
-matlabbatch{1}.spm.stats.results.conspec.conjunction = 1;
-matlabbatch{1}.spm.stats.results.conspec.mask.none = 1;
-matlabbatch{1}.spm.stats.results.units = 1;
-matlabbatch{1}.spm.stats.results.print = 'pdf';
-matlabbatch{1}.spm.stats.results.write.none = 1;
-spm_jobman('run', matlabbatch) % run batch
-clear matlabbatch
-
-doc_list_uncorr = dir('*.pdf'); % list docs
-tmpdir = pwd;
-for i3= 1:length(doc_list_uncorr) % move docs
-    movefile([tmpdir '/' doc_list_uncorr(i3,1).name],[paths.doc 'Stim_v_Fix_uncorr.pdf']);
-end
 clear dir_spm tmpdir i3 doc_list_uncorr
 
 % ------------------------------------------------ %
@@ -525,28 +504,6 @@ matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
 matlabbatch{1}.spm.stats.con.delete = 1;    % 1 means delete, 0 means append
 spm_jobman('run', matlabbatch) % run batch
 
-% document results
-clear matlabbatch
-spm_jobman('initcfg');      % initiate job manager
-matlabbatch{1}.spm.stats.results.spmmat = cellstr([dir_spm '/SPM.mat']);
-matlabbatch{1}.spm.stats.results.conspec.titlestr = cellstr('Rew_Neu_uncorr');
-matlabbatch{1}.spm.stats.results.conspec.contrasts = inf;
-matlabbatch{1}.spm.stats.results.conspec.threshdesc = 'none';
-matlabbatch{1}.spm.stats.results.conspec.thresh = 0.01;
-matlabbatch{1}.spm.stats.results.conspec.extent = 0;
-matlabbatch{1}.spm.stats.results.conspec.conjunction = 1;
-matlabbatch{1}.spm.stats.results.conspec.mask.none = 1;
-matlabbatch{1}.spm.stats.results.units = 1;
-matlabbatch{1}.spm.stats.results.print = 'pdf';
-matlabbatch{1}.spm.stats.results.write.none = 1;
-spm_jobman('run', matlabbatch) % run batch
-clear matlabbatch
-
-doc_list_uncorr = dir('*.pdf'); % list docs
-tmpdir = pwd;
-for i3= 1:length(doc_list_uncorr) % move docs
-    movefile([tmpdir '/' doc_list_uncorr(i3,1).name],[paths.doc 'Rew_Neu_uncorr.pdf']);
-end
 clear dir_spm tmpdir i3 doc_list_uncorr
 
 % ------------------------------------------------ %
@@ -566,28 +523,6 @@ matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
 matlabbatch{1}.spm.stats.con.delete = 1;    % 1 means delete, 0 means append
 spm_jobman('run', matlabbatch) % run batch
 
-% document results
-clear matlabbatch
-spm_jobman('initcfg');      % initiate job manager
-matlabbatch{1}.spm.stats.results.spmmat = cellstr([dir_spm '/SPM.mat']);
-matlabbatch{1}.spm.stats.results.conspec.titlestr = cellstr('Neu_Rew_uncorr');
-matlabbatch{1}.spm.stats.results.conspec.contrasts = inf;
-matlabbatch{1}.spm.stats.results.conspec.threshdesc = 'none';
-matlabbatch{1}.spm.stats.results.conspec.thresh = 0.01;
-matlabbatch{1}.spm.stats.results.conspec.extent = 0;
-matlabbatch{1}.spm.stats.results.conspec.conjunction = 1;
-matlabbatch{1}.spm.stats.results.conspec.mask.none = 1;
-matlabbatch{1}.spm.stats.results.units = 1;
-matlabbatch{1}.spm.stats.results.print = 'pdf';
-matlabbatch{1}.spm.stats.results.write.none = 1;
-spm_jobman('run', matlabbatch) % run batch
-clear matlabbatch
-
-doc_list_uncorr = dir('*.pdf'); % list docs
-tmpdir = pwd;
-for i3= 1:length(doc_list_uncorr) % move docs
-    movefile([tmpdir '/' doc_list_uncorr(i3,1).name],[paths.doc 'Neu_Rew_uncorr.pdf']);
-end
 clear dir_spm tmpdir i3 doc_list_uncorr
 
 % ------------------------------------------------ %
@@ -607,28 +542,6 @@ matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
 matlabbatch{1}.spm.stats.con.delete = 1;    % 1 means delete, 0 means append
 spm_jobman('run', matlabbatch) % run batch
 
-% document results
-clear matlabbatch
-spm_jobman('initcfg');      % initiate job manager
-matlabbatch{1}.spm.stats.results.spmmat = cellstr([dir_spm '/SPM.mat']);
-matlabbatch{1}.spm.stats.results.conspec.titlestr = cellstr('manipulation_uncorr');
-matlabbatch{1}.spm.stats.results.conspec.contrasts = inf;
-matlabbatch{1}.spm.stats.results.conspec.threshdesc = 'none';
-matlabbatch{1}.spm.stats.results.conspec.thresh = 0.01;
-matlabbatch{1}.spm.stats.results.conspec.extent = 0;
-matlabbatch{1}.spm.stats.results.conspec.conjunction = 1;
-matlabbatch{1}.spm.stats.results.conspec.mask.none = 1;
-matlabbatch{1}.spm.stats.results.units = 1;
-matlabbatch{1}.spm.stats.results.print = 'pdf';
-matlabbatch{1}.spm.stats.results.write.none = 1;
-spm_jobman('run', matlabbatch) % run batch
-clear matlabbatch
-
-doc_list_uncorr = dir('*.pdf'); % list docs
-tmpdir = pwd;
-for i3= 1:length(doc_list_uncorr) % move docs
-    movefile([tmpdir '/' doc_list_uncorr(i3,1).name],[paths.doc 'manipulation_uncorr.pdf']);
-end
 clear dir_spm tmpdir i3 doc_list_uncorr
 
 % ------------------------------------------------ %
@@ -647,28 +560,6 @@ matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
 matlabbatch{1}.spm.stats.con.delete = 1;    % 1 means delete, 0 means append
 spm_jobman('run', matlabbatch) % run batch
 
-% document results
-clear matlabbatch
-spm_jobman('initcfg');      % initiate job manager
-matlabbatch{1}.spm.stats.results.spmmat = cellstr([dir_spm '/SPM.mat']);
-matlabbatch{1}.spm.stats.results.conspec.titlestr = cellstr('response_uncorr');
-matlabbatch{1}.spm.stats.results.conspec.contrasts = inf;
-matlabbatch{1}.spm.stats.results.conspec.threshdesc = 'none';
-matlabbatch{1}.spm.stats.results.conspec.thresh = 0.01;
-matlabbatch{1}.spm.stats.results.conspec.extent = 0;
-matlabbatch{1}.spm.stats.results.conspec.conjunction = 1;
-matlabbatch{1}.spm.stats.results.conspec.mask.none = 1;
-matlabbatch{1}.spm.stats.results.units = 1;
-matlabbatch{1}.spm.stats.results.print = 'pdf';
-matlabbatch{1}.spm.stats.results.write.none = 1;
-spm_jobman('run', matlabbatch) % run batch
-clear matlabbatch
-
-doc_list_uncorr = dir('*.pdf'); % list docs
-tmpdir = pwd;
-for i3= 1:length(doc_list_uncorr) % move docs
-    movefile([tmpdir '/' doc_list_uncorr(i3,1).name],[paths.doc 'response_uncorr.pdf']);
-end
 clear dir_spm tmpdir i3 doc_list_uncorr
 
 % ------------------------------------------------ %
@@ -682,34 +573,12 @@ fMRI_estimate([dir_spm '/SPM.mat'])
 clear matlabbatch
 spm_jobman('initcfg');      % initiate job manager
 matlabbatch{1}.spm.stats.con.spmmat = cellstr([dir_spm '/SPM.mat']);
-matlabbatch{1}.spm.stats.con.consess{1}.tcon.name = 'Rew>fix';
+matlabbatch{1}.spm.stats.con.consess{1}.tcon.name = 'Rew>Null';
 matlabbatch{1}.spm.stats.con.consess{1}.tcon.weights = 1;
 matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
 matlabbatch{1}.spm.stats.con.delete = 1;    % 1 means delete, 0 means append
 spm_jobman('run', matlabbatch) % run batch
 
-% document results
-clear matlabbatch
-spm_jobman('initcfg');      % initiate job manager
-matlabbatch{1}.spm.stats.results.spmmat = cellstr([dir_spm '/SPM.mat']);
-matlabbatch{1}.spm.stats.results.conspec.titlestr = cellstr('Rew_uncorr');
-matlabbatch{1}.spm.stats.results.conspec.contrasts = inf;
-matlabbatch{1}.spm.stats.results.conspec.threshdesc = 'none';
-matlabbatch{1}.spm.stats.results.conspec.thresh = 0.01;
-matlabbatch{1}.spm.stats.results.conspec.extent = 0;
-matlabbatch{1}.spm.stats.results.conspec.conjunction = 1;
-matlabbatch{1}.spm.stats.results.conspec.mask.none = 1;
-matlabbatch{1}.spm.stats.results.units = 1;
-matlabbatch{1}.spm.stats.results.print = 'pdf';
-matlabbatch{1}.spm.stats.results.write.none = 1;
-spm_jobman('run', matlabbatch) % run batch
-clear matlabbatch
-
-doc_list_uncorr = dir('*.pdf'); % list docs
-tmpdir = pwd;
-for i3= 1:length(doc_list_uncorr) % move docs
-    movefile([tmpdir '/' doc_list_uncorr(i3,1).name],[paths.doc 'Rew_uncorr.pdf']);
-end
 clear dir_spm tmpdir i3 doc_list_uncorr
 
 % ------------------------------------------------ %
@@ -723,77 +592,16 @@ fMRI_estimate([dir_spm '/SPM.mat'])
 clear matlabbatch
 spm_jobman('initcfg');      % initiate job manager
 matlabbatch{1}.spm.stats.con.spmmat = cellstr([dir_spm '/SPM.mat']);
-matlabbatch{1}.spm.stats.con.consess{1}.tcon.name = 'Neu>fix';
+matlabbatch{1}.spm.stats.con.consess{1}.tcon.name = 'Neu>Null';
 matlabbatch{1}.spm.stats.con.consess{1}.tcon.weights = 1;
 matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
 matlabbatch{1}.spm.stats.con.delete = 1;    % 1 means delete, 0 means append
 spm_jobman('run', matlabbatch) % run batch
 
-% document results
-clear matlabbatch
-spm_jobman('initcfg');      % initiate job manager
-matlabbatch{1}.spm.stats.results.spmmat = cellstr([dir_spm '/SPM.mat']);
-matlabbatch{1}.spm.stats.results.conspec.titlestr = cellstr('Neu_uncorr');
-matlabbatch{1}.spm.stats.results.conspec.contrasts = inf;
-matlabbatch{1}.spm.stats.results.conspec.threshdesc = 'none';
-matlabbatch{1}.spm.stats.results.conspec.thresh = 0.01;
-matlabbatch{1}.spm.stats.results.conspec.extent = 0;
-matlabbatch{1}.spm.stats.results.conspec.conjunction = 1;
-matlabbatch{1}.spm.stats.results.conspec.mask.none = 1;
-matlabbatch{1}.spm.stats.results.units = 1;
-matlabbatch{1}.spm.stats.results.print = 'pdf';
-matlabbatch{1}.spm.stats.results.write.none = 1;
-spm_jobman('run', matlabbatch) % run batch
-clear matlabbatch
-
-doc_list_uncorr = dir('*.pdf'); % list docs
-tmpdir = pwd;
-for i3= 1:length(doc_list_uncorr) % move docs
-    movefile([tmpdir '/' doc_list_uncorr(i3,1).name],[paths.doc 'Neu_uncorr.pdf']);
-end
 clear dir_spm tmpdir i3 doc_list_uncorr
 
 % ------------------------------------------------ %
 
-
-% ------- compute: neutral > fix ------- %
-cd(paths.save2nd); mkdir('Neu'); cd Neu; dir_spm = pwd;
-secondlvl_onesampleT(dir_spm,list_neu_rew) % run
-fMRI_estimate([dir_spm '/SPM.mat'])
-clear matlabbatch
-spm_jobman('initcfg');      % initiate job manager
-matlabbatch{1}.spm.stats.con.spmmat = cellstr([dir_spm '/SPM.mat']);
-matlabbatch{1}.spm.stats.con.consess{1}.tcon.name = 'Neu>fix';
-matlabbatch{1}.spm.stats.con.consess{1}.tcon.weights = 1;
-matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
-matlabbatch{1}.spm.stats.con.delete = 1;    % 1 means delete, 0 means append
-spm_jobman('run', matlabbatch) % run batch
-
-% document results
-clear matlabbatch
-spm_jobman('initcfg');      % initiate job manager
-matlabbatch{1}.spm.stats.results.spmmat = cellstr([dir_spm '/SPM.mat']);
-matlabbatch{1}.spm.stats.results.conspec.titlestr = cellstr('Neu_uncorr');
-matlabbatch{1}.spm.stats.results.conspec.contrasts = inf;
-matlabbatch{1}.spm.stats.results.conspec.threshdesc = 'none';
-matlabbatch{1}.spm.stats.results.conspec.thresh = 0.01;
-matlabbatch{1}.spm.stats.results.conspec.extent = 0;
-matlabbatch{1}.spm.stats.results.conspec.conjunction = 1;
-matlabbatch{1}.spm.stats.results.conspec.mask.none = 1;
-matlabbatch{1}.spm.stats.results.units = 1;
-matlabbatch{1}.spm.stats.results.print = 'pdf';
-matlabbatch{1}.spm.stats.results.write.none = 1;
-spm_jobman('run', matlabbatch) % run batch
-clear matlabbatch
-
-doc_list_uncorr = dir('*.pdf'); % list docs
-tmpdir = pwd;
-for i3= 1:length(doc_list_uncorr) % move docs
-    movefile([tmpdir '/' doc_list_uncorr(i3,1).name],[paths.doc 'Neu_uncorr.pdf']);
-end
-clear dir_spm tmpdir i3 doc_list_uncorr
-
-% ------------------------------------------------ %
 
 
 % ------- compute: feedback: rewards > neutral ------- %
@@ -809,28 +617,6 @@ matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
 matlabbatch{1}.spm.stats.con.delete = 1;    % 1 means delete, 0 means append
 spm_jobman('run', matlabbatch) % run batch
 
-% document results
-clear matlabbatch
-spm_jobman('initcfg');      % initiate job manager
-matlabbatch{1}.spm.stats.results.spmmat = cellstr([dir_spm '/SPM.mat']);
-matlabbatch{1}.spm.stats.results.conspec.titlestr = cellstr('Feedback: Rew>Neu uncorr');
-matlabbatch{1}.spm.stats.results.conspec.contrasts = inf;
-matlabbatch{1}.spm.stats.results.conspec.threshdesc = 'none';
-matlabbatch{1}.spm.stats.results.conspec.thresh = 0.01;
-matlabbatch{1}.spm.stats.results.conspec.extent = 0;
-matlabbatch{1}.spm.stats.results.conspec.conjunction = 1;
-matlabbatch{1}.spm.stats.results.conspec.mask.none = 1;
-matlabbatch{1}.spm.stats.results.units = 1;
-matlabbatch{1}.spm.stats.results.print = 'pdf';
-matlabbatch{1}.spm.stats.results.write.none = 1;
-spm_jobman('run', matlabbatch) % run batch
-clear matlabbatch
-
-doc_list_uncorr = dir('*.pdf'); % list docs
-tmpdir = pwd;
-for i3= 1:length(doc_list_uncorr) % move docs
-    movefile([tmpdir '/' doc_list_uncorr(i3,1).name],[paths.doc 'Feedback: Rew>Neu uncorr.pdf']);
-end
 clear dir_spm tmpdir i3 doc_list_uncorr
 
 % ------------------------------------------------ %
@@ -849,31 +635,46 @@ matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
 matlabbatch{1}.spm.stats.con.delete = 1;    % 1 means delete, 0 means append
 spm_jobman('run', matlabbatch) % run batch
 
-% document results
-clear matlabbatch
-spm_jobman('initcfg');      % initiate job manager
-matlabbatch{1}.spm.stats.results.spmmat = cellstr([dir_spm '/SPM.mat']);
-matlabbatch{1}.spm.stats.results.conspec.titlestr = cellstr('Feedback: Neu>Rew uncorr');
-matlabbatch{1}.spm.stats.results.conspec.contrasts = inf;
-matlabbatch{1}.spm.stats.results.conspec.threshdesc = 'none';
-matlabbatch{1}.spm.stats.results.conspec.thresh = 0.01;
-matlabbatch{1}.spm.stats.results.conspec.extent = 0;
-matlabbatch{1}.spm.stats.results.conspec.conjunction = 1;
-matlabbatch{1}.spm.stats.results.conspec.mask.none = 1;
-matlabbatch{1}.spm.stats.results.units = 1;
-matlabbatch{1}.spm.stats.results.print = 'pdf';
-matlabbatch{1}.spm.stats.results.write.none = 1;
-spm_jobman('run', matlabbatch) % run batch
-clear matlabbatch
-
-doc_list_uncorr = dir('*.pdf'); % list docs
-tmpdir = pwd;
-for i3= 1:length(doc_list_uncorr) % move docs
-    movefile([tmpdir '/' doc_list_uncorr(i3,1).name],[paths.doc 'Feedback: Neu>Rew uncorr.pdf']);
-end
 clear dir_spm tmpdir i3 doc_list_uncorr
 
 % ------------------------------------------------ %
+
+
+% ------- compute: feedback: rewards > null ------- %
+cd(paths.save2nd); mkdir('fb_rew_null'); cd fb_rew_null; dir_spm = pwd;
+secondlvl_onesampleT(dir_spm,list_feedback_rew) % run
+fMRI_estimate([dir_spm '/SPM.mat'])
+clear matlabbatch
+spm_jobman('initcfg');      % initiate job manager
+matlabbatch{1}.spm.stats.con.spmmat = cellstr([dir_spm '/SPM.mat']);
+matlabbatch{1}.spm.stats.con.consess{1}.tcon.name = 'Feedback: Rew>Null';
+matlabbatch{1}.spm.stats.con.consess{1}.tcon.weights = 1;
+matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
+matlabbatch{1}.spm.stats.con.delete = 1;    % 1 means delete, 0 means append
+spm_jobman('run', matlabbatch) % run batch
+
+clear dir_spm tmpdir i3 doc_list_uncorr
+
+% ------------------------------------------------ %
+
+
+% ------- compute: feedback: rewards > null ------- %
+cd(paths.save2nd); mkdir('fb_neu_null'); cd fb_neu_null; dir_spm = pwd;
+secondlvl_onesampleT(dir_spm,list_feedback_neu) % run
+fMRI_estimate([dir_spm '/SPM.mat'])
+clear matlabbatch
+spm_jobman('initcfg');      % initiate job manager
+matlabbatch{1}.spm.stats.con.spmmat = cellstr([dir_spm '/SPM.mat']);
+matlabbatch{1}.spm.stats.con.consess{1}.tcon.name = 'Feedback: Neu>Null';
+matlabbatch{1}.spm.stats.con.consess{1}.tcon.weights = 1;
+matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
+matlabbatch{1}.spm.stats.con.delete = 1;    % 1 means delete, 0 means append
+spm_jobman('run', matlabbatch) % run batch
+
+clear dir_spm tmpdir i3 doc_list_uncorr
+
+% ------------------------------------------------ %
+
 
 fprintf('\ndone\n')
 
