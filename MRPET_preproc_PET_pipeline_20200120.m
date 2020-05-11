@@ -374,7 +374,7 @@ for id = 1:length(IDs)
             
             % 4-D PET file
 %             PETtask = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/k' num2str(IDs(id)) '_PET_4D_MT' num2str(days(id,d)) '.nii'];
-            PETflow = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/k' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii'];
+            PETflow = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/c' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii'];
 %             PETbsl  = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/k' num2str(IDs(id)) '_PET_4D_Baseline' num2str(days(id,d)) '.nii'];
             
             %% Read in FreeSurfer mask data
@@ -432,22 +432,22 @@ for id = 1:length(IDs)
             
             %% Read in 4D-PET data and extract ROI-averages in each frame
             
-%             % task
-%             DynPET=load_nii(PETtask);
-%             temp=size(DynPET.img);
-%             ImgData=reshape(DynPET.img,prod(temp(1:3)),temp(4));
-%             for ROI=fieldnames(maskidx)'
-%                 TACDATA.(ROI{1}).LongName=maskidx.(ROI{1}).LongName;
-%                 for Hemi={'Left','Right','Bilateral'}
-%                     maskidxcur = maskidx.(ROI{1}).(Hemi{1});
-%                     TACDATA.(ROI{1}).(Hemi{1}).vol=length(maskidxcur)*(1-TrimPerc/100);
-%                     TACDATA.(ROI{1}).(Hemi{1}).tac=trimmean(ImgData(maskidxcur,:),TrimPerc)';
-%                 end
-%                 
-%             end
-%             TACDATA.info = 'RewardTask';
-%             save([ paths.TACs num2str(IDs(id)) num2str(d) '_TACDATA_Task.mat'],'TACDATA'); clear TACDATA DynPET temp ImgData
-%             
+            % task
+            DynPET=load_nii(PETtask);
+            temp=size(DynPET.img);
+            ImgData=reshape(DynPET.img,prod(temp(1:3)),temp(4));
+            for ROI=fieldnames(maskidx)'
+                TACDATA.(ROI{1}).LongName=maskidx.(ROI{1}).LongName;
+                for Hemi={'Left','Right','Bilateral'}
+                    maskidxcur = maskidx.(ROI{1}).(Hemi{1});
+                    TACDATA.(ROI{1}).(Hemi{1}).vol=length(maskidxcur)*(1-TrimPerc/100);
+                    TACDATA.(ROI{1}).(Hemi{1}).tac=trimmean(ImgData(maskidxcur,:),TrimPerc)';
+                end
+                
+            end
+            TACDATA.info = 'RewardTask';
+            save([ paths.TACs num2str(IDs(id)) num2str(d) '_TACDATA_Task.mat'],'TACDATA'); clear TACDATA DynPET temp ImgData
+            
             % inFlow
             DynPET=load_nii(PETflow);
             temp=size(DynPET.img);
@@ -464,21 +464,21 @@ for id = 1:length(IDs)
             TACDATA.info = 'inFlow';
             save([ paths.TACs num2str(IDs(id)) num2str(d) '_TACDATA_InFlow.mat'],'TACDATA'); clear TACDATA DynPET temp ImgData
             
-%             % baseline
-%             DynPET=load_nii(PETbsl);
-%             temp=size(DynPET.img);
-%             ImgData=reshape(DynPET.img,prod(temp(1:3)),temp(4));
-%             for ROI=fieldnames(maskidx)'
-%                 TACDATA.(ROI{1}).LongName=maskidx.(ROI{1}).LongName;
-%                 for Hemi={'Left','Right','Bilateral'}
-%                     maskidxcur = maskidx.(ROI{1}).(Hemi{1});
-%                     TACDATA.(ROI{1}).(Hemi{1}).vol=length(maskidxcur)*(1-TrimPerc/100);
-%                     TACDATA.(ROI{1}).(Hemi{1}).tac=trimmean(ImgData(maskidxcur,:),TrimPerc)';
-%                 end
-%                 
-%             end
-%             TACDATA.info = 'Baseline';
-%             save([ paths.TACs num2str(IDs(id)) num2str(d) '_TACDATA_Baseline.mat'],'TACDATA'); clear TACDATA DynPET temp ImgData
+            % baseline
+            DynPET=load_nii(PETbsl);
+            temp=size(DynPET.img);
+            ImgData=reshape(DynPET.img,prod(temp(1:3)),temp(4));
+            for ROI=fieldnames(maskidx)'
+                TACDATA.(ROI{1}).LongName=maskidx.(ROI{1}).LongName;
+                for Hemi={'Left','Right','Bilateral'}
+                    maskidxcur = maskidx.(ROI{1}).(Hemi{1});
+                    TACDATA.(ROI{1}).(Hemi{1}).vol=length(maskidxcur)*(1-TrimPerc/100);
+                    TACDATA.(ROI{1}).(Hemi{1}).tac=trimmean(ImgData(maskidxcur,:),TrimPerc)';
+                end
+                
+            end
+            TACDATA.info = 'Baseline';
+            save([ paths.TACs num2str(IDs(id)) num2str(d) '_TACDATA_Baseline.mat'],'TACDATA'); clear TACDATA DynPET temp ImgData
         end
     end
 end
@@ -495,12 +495,12 @@ for id = 1:length(IDs)
         else
             % Freesurfer segmentation, if .mgh use mri_read from FreeSurfer/Matlab
             clear Mask CurPET_task CurPET_flow CurPET_BSL
-            Mask2   =[ paths.seg num2str(IDs(id)) num2str(d) '2/mri/aparc+aseg.nii'];
+            Mask2   =[ paths.seg num2str(IDs(id)) num2str(d) '2/mri/aparc+aseg.nii']; % task and the baseline
             
             % 4-D PET file
-            PETtask = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/k' num2str(IDs(id)) '_PET_4D_MT' num2str(days(id,d)) '.nii'];
+            PETtask = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/c' num2str(IDs(id)) '_PET_4D_MT' num2str(days(id,d)) '.nii'];
 %             PETflow = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/k' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii'];
-            PETbsl  = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/k' num2str(IDs(id)) '_PET_4D_Baseline' num2str(days(id,d)) '.nii'];
+            PETbsl  = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/c' num2str(IDs(id)) '_PET_4D_Baseline' num2str(days(id,d)) '.nii'];
             
             %% Read in FreeSurfer mask data
             ROI=load_nii(Mask2);
@@ -635,45 +635,54 @@ for id = 1:length(IDs)
             tt2=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)]; clear Lengths
             Lengths=300*ones(11,1);
             tt3=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)]; clear Lengths
-            Times=[tt1; tt2+95*60; tt3+115*60]
-            if IDs(id) == 4007 && days(id,d) == 1
-                Cer=[vertcat(nan(9,1),TACDATA_InFlow.CerC.Bilateral.tac); TACDATA_Baseline.CerC.Bilateral.tac; TACDATA_Task.CerC.Bilateral.tac];
-                Put=[vertcat(nan(9,1),TACDATA_InFlow.Put.Bilateral.tac); TACDATA_Baseline.Put.Bilateral.tac; TACDATA_Task.Put.Bilateral.tac];
-                Caud=[vertcat(nan(9,1),TACDATA_InFlow.Caud.Bilateral.tac); TACDATA_Baseline.Caud.Bilateral.tac; TACDATA_Task.Caud.Bilateral.tac];
-                tmid=mean(Times,2)/60;
-%             elseif IDs(id) == 4004 && days(id,d) == 1
-%                 Cer=[vertcat(nan(9,1),TACDATA_InFlow.CerC.Bilateral.tac); TACDATA_Baseline.CerC.Bilateral.tac; TACDATA_Task.CerC.Bilateral.tac];
-%                 Put=[vertcat(nan(9,1),TACDATA_InFlow.Put.Bilateral.tac); TACDATA_Baseline.Put.Bilateral.tac; TACDATA_Task.Put.Bilateral.tac];
-%                 Caud=[vertcat(nan(9,1),TACDATA_InFlow.Caud.Bilateral.tac); TACDATA_Baseline.Caud.Bilateral.tac; TACDATA_Task.Caud.Bilateral.tac];
-%                 tmid=mean(Times,2)/60;
-            elseif IDs(id) == 4006 && days(id,d) == 2
-                Cer=[vertcat(nan(9,1),TACDATA_InFlow.CerC.Bilateral.tac); TACDATA_Baseline.CerC.Bilateral.tac; TACDATA_Task.CerC.Bilateral.tac];
-                Put=[vertcat(nan(9,1),TACDATA_InFlow.Put.Bilateral.tac); TACDATA_Baseline.Put.Bilateral.tac; TACDATA_Task.Put.Bilateral.tac];
-                Caud=[vertcat(nan(9,1),TACDATA_InFlow.Caud.Bilateral.tac); TACDATA_Baseline.Caud.Bilateral.tac; TACDATA_Task.Caud.Bilateral.tac];
-                tmid=mean(Times,2)/60;
-            else
+            Times=[tt1; tt2+95*60; tt3+115*60];
+            
+            try
                 Cer=[TACDATA_InFlow.CerC.Bilateral.tac; TACDATA_Baseline.CerC.Bilateral.tac; TACDATA_Task.CerC.Bilateral.tac];
                 Put=[TACDATA_InFlow.Put.Bilateral.tac; TACDATA_Baseline.Put.Bilateral.tac; TACDATA_Task.Put.Bilateral.tac];
                 Caud=[TACDATA_InFlow.Caud.Bilateral.tac; TACDATA_Baseline.Caud.Bilateral.tac; TACDATA_Task.Caud.Bilateral.tac];
                 tmid=mean(Times,2)/60;
+                
+                % now draw
+                figure('Renderer', 'painters ')
+                plot(tmid,Cer,'ko-',tmid,Put,'ro-',tmid,Caud,'bo-');
+                xlabel('Time (min)'); ylabel('Radioactivity (Bq/mL)');
+                legend('Cerebellum','Putamen','Caudate');
+                ax = gca; ax.YAxis.Exponent = 0;
+                ylim([0 30000]);
+                clear titlestring
+                if Appointments(id) == 1
+                    titlestring = ['ID ' num2str(IDs(id)) ', morning appointment, Session type ' num2str(d)];
+                else
+                    titlestring = ['ID ' num2str(IDs(id)) ', afternoon appointment, Session type ' num2str(d)];
+                end
+                title(titlestring,'Fontsize',20,'Fontweight','bold')
+                print('-dpdf','-bestfit', fullfile(paths.figures, [ num2str(IDs(id)) num2str(d) '_TAC.pdf']));
+                
+            catch
+                Cer=[vertcat(nan(9,1),TACDATA_InFlow.CerC.Bilateral.tac); TACDATA_Baseline.CerC.Bilateral.tac; TACDATA_Task.CerC.Bilateral.tac];
+                Put=[vertcat(nan(9,1),TACDATA_InFlow.Put.Bilateral.tac); TACDATA_Baseline.Put.Bilateral.tac; TACDATA_Task.Put.Bilateral.tac];
+                Caud=[vertcat(nan(9,1),TACDATA_InFlow.Caud.Bilateral.tac); TACDATA_Baseline.Caud.Bilateral.tac; TACDATA_Task.Caud.Bilateral.tac];
+                tmid=mean(Times,2)/60;
+                
+                % now draw
+                figure('Renderer', 'painters ')
+                plot(tmid,Cer,'ko-',tmid,Put,'ro-',tmid,Caud,'bo-');
+                xlabel('Time (min)'); ylabel('Radioactivity (Bq/mL)');
+                legend('Cerebellum','Putamen','Caudate');
+                ax = gca; ax.YAxis.Exponent = 0;
+                ylim([0 30000]);
+                clear titlestring
+                if Appointments(id) == 1
+                    titlestring = ['ID ' num2str(IDs(id)) ', morning appointment, Session type ' num2str(d)];
+                else
+                    titlestring = ['ID ' num2str(IDs(id)) ', afternoon appointment, Session type ' num2str(d)];
+                end
+                title(titlestring,'Fontsize',20,'Fontweight','bold')
+                print('-dpdf','-bestfit', fullfile(paths.figures, [ num2str(IDs(id)) num2str(d) '_TAC.pdf']));
+                
             end
-            
-            % now draw
-            figure('Renderer', 'painters ')
-            plot(tmid,Cer,'ko-',tmid,Put,'ro-',tmid,Caud,'bo-');
-            xlabel('Time (min)'); ylabel('Radioactivity (Bq/mL)');
-            legend('Cerebellum','Putamen','Caudate');
-            ax = gca; ax.YAxis.Exponent = 0;
-            ylim([0 25000]);
-            clear titlestring
-            if Appointments(id) == 1
-                titlestring = ['ID ' num2str(IDs(id)) ', morning appointment, Session type ' num2str(d)];
-            else
-                titlestring = ['ID ' num2str(IDs(id)) ', afternoon appointment, Session type ' num2str(d)];
-            end
-            title(titlestring,'Fontsize',20,'Fontweight','bold')
-            print('-dpdf','-bestfit', fullfile(paths.figures, [ num2str(IDs(id)) num2str(d) '_TAC.pdf']));
-            
+
         end
     end
 end

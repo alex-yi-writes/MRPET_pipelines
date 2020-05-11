@@ -8,7 +8,7 @@ matlabbatch{1}.spm.spatial.realign.estimate.eoptions.quality = 0.9;
 matlabbatch{1}.spm.spatial.realign.estimate.eoptions.sep = 4;
 matlabbatch{1}.spm.spatial.realign.estimate.eoptions.fwhm = 5;
 matlabbatch{1}.spm.spatial.realign.estimate.eoptions.rtm = 1;
-matlabbatch{1}.spm.spatial.realign.estimate.eoptions.interp = 4;
+matlabbatch{1}.spm.spatial.realign.estimate.eoptions.interp = 7;
 matlabbatch{1}.spm.spatial.realign.estimate.eoptions.wrap = [0 0 0];
 matlabbatch{1}.spm.spatial.realign.estimate.eoptions.weight = '';
 
@@ -31,6 +31,6 @@ spm_jobman('run', matlabbatch);
 
 clear matlabbatch
 
-config.MRI.preproc.realign = 'reslice, 4th-degree B spline';
+config.MRI.preproc.realign = 'reslice, 7th-degree B spline';
 
 end

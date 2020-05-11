@@ -37,13 +37,13 @@ paths.TACs    = [paths.parent 'E_data/EA_raw/EAD_PET/EADC_TACs/RewardTask/'];
 paths.figures = [paths.parent 'C_writings/CB_figures/MRPET/MainTask/TACs/']
 
 % add toolboxes and functions
-addpath(genpath('/Users/yeojin/Documents/MATLAB/spm12'))
+% addpath(genpath('/Users/yeojin/Documents/MATLAB/spm12'))
 addpath(paths.funx_MRI)
 addpath(paths.funx_PET)
 
 % IDs
 IDs = [4001];
-days = [0 2];
+days = [1 0];
 
 
 % load experimental details
@@ -316,6 +316,10 @@ for id = 1:length(IDs)
                 [config]        = preproc_realign_estwrt_PET(IDs(id),flist_PETtask);
                 
                 % PET inflow
+                %%%%%%%%%%%%%%%%%
+                % somehow inflow images look funny and throw errors so i'm
+                % treating it differently
+                %%%%%%%%%%%%%%%%%
                 for cc = 1:length(spm_vol([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii']))
                     flist_PETflow{cc,1}    = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii,' num2str(cc)];
                 end;clear cc
@@ -489,6 +493,11 @@ end
 % this part is very heavy for some computers
 
 addpath('/Users/yeojin/Documents/MATLAB/NIfTI_20140122')
+opengl hardwarebasic
+
+% IDs
+IDs = [4001];
+days = [1 2];
 
 % percentage of radioactivity concentrations trimmed-out when calculated
 % ROI-average
@@ -638,13 +647,12 @@ for id = 1:length(IDs)
             tmid=mean(Times,2)/60;
             
             % now draw
-            figure;
+            figure('Renderer', 'painters ')
             plot(tmid,Cer,'ko-',tmid,Put,'ro-',tmid,Caud,'bo-');
             xlabel('Time (min)'); ylabel('Radioactivity (Bq/mL)');
             legend('Cerebellum','Putamen','Caudate');
             ax = gca; ax.YAxis.Exponent = 0;
-            cd(paths.figures)
-            print('-dpdf','-bestfit',[ num2str(IDs(id)) num2str(d) '.pdf']);
+            print('-dpdf','-bestfit', fullfile(paths.figures, [ num2str(IDs(id)) num2str(d) '.pdf']));
             
         end
     end

@@ -2,7 +2,7 @@
 clc
 clear
 close all
-addpath('/Users/dorothea/Dropbox/matlab/toolboxes/spm12');
+% addpath('/Users/dorothea/Dropbox/matlab/toolboxes/spm12');
 cwd = '/Users/yeojin/Desktop/E_data/EA_raw/EAD_PET/EADB_preprocessed/RewardTask/';cd(cwd)
 
 % IDs
@@ -76,6 +76,15 @@ end
 %%
 close all
 cd('/Users/yeojin/Desktop/C_writings/CB_figures/MRPET/MainTask/etc')
+
+Lengths=[10*ones(30,1); 60*ones(55,1)];
+tt1=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)]; clear Lengths
+Lengths=60*ones(15,1);
+tt2=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)]; clear Lengths
+Lengths=300*ones(11,1);
+tt3=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)]; clear Lengths
+Times=[tt1; tt2+95*60; tt3+115*60];
+
 cc2=0;
 for id = 1:length(ids)
     for d = 1:2
@@ -86,9 +95,10 @@ for id = 1:length(ids)
             figure;
             plot(mr(cc2,:,1),'MarkerSize',10,'LineWidth',5);hold on;set(gca,'FontSize',20, 'FontWeight', 'bold')
             plot(mr(cc2,:,2),'MarkerSize',10,'LineWidth',5);hold on;set(gca,'FontSize',20, 'FontWeight', 'bold')
-            plot(mr(cc2,:,3),'MarkerSize',10,'LineWidth',5);hold on;set(gca,'FontSize',20, 'FontWeight', 'bold')
+            plot(Times./60,mr(cc2,:,3),'MarkerSize',10,'LineWidth',5);hold on;set(gca,'FontSize',20, 'FontWeight', 'bold') %% make xticks as time in minutes
             legend({'X','Y','Z'},'FontSize',10); xlim([0,85])
             title(num2str(ids(id)));xlabel('Frames','FontSize',20, 'FontWeight', 'bold');ylabel('millimetre','FontSize',20, 'FontWeight', 'bold')
+            
             
             fig = gcf; % save
             fig.PaperPositionMode = 'auto';
