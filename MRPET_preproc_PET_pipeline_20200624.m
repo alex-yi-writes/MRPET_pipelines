@@ -22,7 +22,7 @@ paths.dat_4D  = [paths.parent 'E_data/EA_raw/EAD_PET/EADA_converted/RewardTask/B
 paths.preproc = [paths.parent 'E_data/EA_raw/EAD_PET/EADB_preprocessed/RewardTask/'];
 paths.history = [paths.parent 'E_data/EA_raw/EAB_MRI/EABX_history/MainTask/'];
 paths.behav   = '/Users/yeojin/Desktop/E_data/EA_raw/EAC_behav/MRPET/';
-paths.seg     = [paths.parent 'E_data/EA_raw/EAB_MRI/EABD_segmented/'];
+paths.seg     = [paths.parent 'E_data/EA_raw/EAD_PET/EADD_segmented/'];
 paths.TACs    = [paths.parent 'E_data/EA_raw/EAD_PET/EADC_TACs/RewardTask/'];
 paths.figures = [paths.parent 'C_writings/CB_figures/MRPET/MainTask/TACs/']
 
@@ -32,8 +32,8 @@ addpath(paths.funx_MRI)
 addpath(paths.funx_PET)
 
 % IDs
-IDs = [4001 4002 4003 4004 4005 4006 4007];
-days = [1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0]; 
+IDs     = [4008 4009 4010 4011 4012 4013 4014 4015];
+days    = [1 2; 0 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 2]; 
 
 % load experimental details
 expdat = [];
@@ -69,9 +69,9 @@ fprintf('\n preparation done \n')
 
 clear id d
 
-for id = 1:length(IDs)
+for id = 3%:length(IDs)
     
-    for d = 1:2
+    for d = 2%1:2
         
         if days(id,d) == 0
             warning('Skipped')
@@ -128,6 +128,7 @@ for id = 1:length(IDs)
 %                 end
                 [config]        = preproc_realign_PET(IDs(id),flist_PETtask);
                 [config]        = preproc_realign_estwrt_PET(IDs(id),flist_PETtask);
+                disp('MT realigned')
                 
                 % PET inflow
                 %%%%%%%%%%%%%%%%%
@@ -136,21 +137,14 @@ for id = 1:length(IDs)
                 %%%%%%%%%%%%%%%%%
                 
                 % how many volumes are there?
-                try
-                    flist_PETflow=[];
-                    for cc = 1:length(spm_vol([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii']))
-                        flist_PETflow{cc,1}    = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii,' num2str(cc)];
-                    end;clear cc
-                    [config]        = preproc_realign_PET(IDs(id),flist_PETflow);
-                    [config]        = preproc_realign_estwrt_PET(IDs(id),flist_PETflow);
-                catch
-                    flist_PETflow=[];
-                    for cc = 10:length(spm_vol([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii']))
-                        flist_PETflow{cc-9,1}    = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii,' num2str(cc)];
-                    end;clear cc
-                    [config]        = preproc_realign_PET(IDs(id),flist_PETflow);
-                    [config]        = preproc_realign_estwrt_PET(IDs(id),flist_PETflow);
-                end
+                flist_PETflow=[];
+                for cc = 10:length(spm_vol([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii']))
+                    flist_PETflow{cc-9,1}    = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii,' num2str(cc)];
+                end;clear cc
+                [config]        = preproc_realign_PET(IDs(id),flist_PETflow);
+                [config]        = preproc_realign_estwrt_PET(IDs(id),flist_PETflow);
+                disp('inflow realigned')
+                
                 
                 
                 % PET baseline
@@ -166,6 +160,7 @@ for id = 1:length(IDs)
                 end
                 [config]        = preproc_realign_PET(IDs(id),flist_PETbsl);
                 [config]        = preproc_realign_estwrt_PET(IDs(id),flist_PETbsl);
+                disp('baseline realigned')
                 
                 fg_2_realigned  = 1;
                 config.flags.realigned = 1;
@@ -187,19 +182,11 @@ for id = 1:length(IDs)
             if fg_3_coregistered == 0
                 
                 % InFlow
-                if length(flist_PETflow)<85
-                    PETflow_mean = cellstr([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/mean' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii']);
-                    PETflow=[];
-                    for cc = 1:(length(spm_vol([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii']))-9)
-                        PETflow{cc,1}    = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii,' num2str(cc)];
-                    end;clear cc
-                elseif length(flist_PETflow)==85
-                    PETflow_mean = cellstr([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/mean' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii']);
-                    PETflow=[];
-                    for cc = 1:length(spm_vol([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii']))
-                        PETflow{cc,1}    = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii,' num2str(cc)];
-                    end;clear cc
-                end
+                PETflow_mean = cellstr([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/mean' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii']);
+                PETflow=[];
+                for cc = 1:(length(spm_vol([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii']))-9)
+                    PETflow{cc,1}    = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii,' num2str(cc)];
+                end;clear cc
                 
                 % baseline
                 try
@@ -226,8 +213,8 @@ for id = 1:length(IDs)
                 % now coregister really
                 sMRI_pt1      = cellstr([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_MRI_4D_MPRAGE' num2str(days(id,d)) '_pt1.nii']);
                 sMRI_pt2      = cellstr([paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/' num2str(IDs(id)) '_MRI_4D_MPRAGE' num2str(days(id,d)) '_pt2.nii']);
-                seg_image_pt1 = {[paths.seg num2str(IDs(id)) num2str(d) '1/mri/aparc+aseg.nii']};
-                seg_image_pt2 = {[paths.seg num2str(IDs(id)) num2str(d) '2/mri/aparc+aseg.nii']};
+                seg_image_pt1 = {[paths.seg num2str(IDs(id)) num2str(d) '1/aparc+aseg.nii']};
+                seg_image_pt2 = {[paths.seg num2str(IDs(id)) num2str(d) '2/aparc+aseg.nii']};
                 
                 % step (2) - 1: reslice T1 part 1 (InFlow part) with the corresponding segmentation.
                 clear matlabbatch
@@ -351,8 +338,8 @@ addpath('/Users/yeojin/Documents/MATLAB/NIfTI_20140122')
 opengl hardwarebasic
 
 % IDs
-IDs = [4001 4002 4003 4004 4005 4006 4007];
-days = [1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0]; 
+IDs     = [4008 4009 4010 4011 4012 4013 4014 4015];
+days    = [1 2; 0 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 2]; 
 
 % percentage of radioactivity concentrations trimmed-out when calculated
 % ROI-average
@@ -360,7 +347,7 @@ TrimPerc=15;
 
 clear id d
 
-for id = 1:length(IDs)
+for id = 4:length(IDs)
     
     for d = 1:2
         
@@ -369,12 +356,10 @@ for id = 1:length(IDs)
         else
             % Freesurfer segmentation, if .mgh use mri_read from FreeSurfer/Matlab
             clear Mask CurPET_task CurPET_flow CurPET_BSL
-            Mask1   =[ paths.seg num2str(IDs(id)) num2str(d) '1/mri/aparc+aseg.nii'];
+            Mask1   =[ paths.seg num2str(IDs(id)) num2str(d) '1/aparc+aseg.nii'];
             
             % 4-D PET file
-%             PETtask = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/k' num2str(IDs(id)) '_PET_4D_MT' num2str(days(id,d)) '.nii'];
             PETflow = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/c' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii'];
-%             PETbsl  = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/k' num2str(IDs(id)) '_PET_4D_Baseline' num2str(days(id,d)) '.nii'];
             
             %% Read in FreeSurfer mask data
             ROI=load_nii(Mask1);
@@ -431,21 +416,21 @@ for id = 1:length(IDs)
             
             %% Read in 4D-PET data and extract ROI-averages in each frame
             
-            % task
-            DynPET=load_nii(PETtask);
-            temp=size(DynPET.img);
-            ImgData=reshape(DynPET.img,prod(temp(1:3)),temp(4));
-            for ROI=fieldnames(maskidx)'
-                TACDATA.(ROI{1}).LongName=maskidx.(ROI{1}).LongName;
-                for Hemi={'Left','Right','Bilateral'}
-                    maskidxcur = maskidx.(ROI{1}).(Hemi{1});
-                    TACDATA.(ROI{1}).(Hemi{1}).vol=length(maskidxcur)*(1-TrimPerc/100);
-                    TACDATA.(ROI{1}).(Hemi{1}).tac=trimmean(ImgData(maskidxcur,:),TrimPerc)';
-                end
-                
-            end
-            TACDATA.info = 'RewardTask';
-            save([ paths.TACs num2str(IDs(id)) num2str(d) '_TACDATA_Task.mat'],'TACDATA'); clear TACDATA DynPET temp ImgData
+%             % task
+%             DynPET=load_nii(PETtask);
+%             temp=size(DynPET.img);
+%             ImgData=reshape(DynPET.img,prod(temp(1:3)),temp(4));
+%             for ROI=fieldnames(maskidx)'
+%                 TACDATA.(ROI{1}).LongName=maskidx.(ROI{1}).LongName;
+%                 for Hemi={'Left','Right','Bilateral'}
+%                     maskidxcur = maskidx.(ROI{1}).(Hemi{1});
+%                     TACDATA.(ROI{1}).(Hemi{1}).vol=length(maskidxcur)*(1-TrimPerc/100);
+%                     TACDATA.(ROI{1}).(Hemi{1}).tac=trimmean(ImgData(maskidxcur,:),TrimPerc)';
+%                 end
+%                 
+%             end
+%             TACDATA.info = 'RewardTask';
+%             save([ paths.TACs num2str(IDs(id)) num2str(d) '_TACDATA_Task.mat'],'TACDATA'); clear TACDATA DynPET temp ImgData
             
             % inFlow
             DynPET=load_nii(PETflow);
@@ -462,30 +447,30 @@ for id = 1:length(IDs)
             end
             TACDATA.info = 'inFlow';
             save([ paths.TACs num2str(IDs(id)) num2str(d) '_TACDATA_InFlow.mat'],'TACDATA'); clear TACDATA DynPET temp ImgData
-            
-            % baseline
-            DynPET=load_nii(PETbsl);
-            temp=size(DynPET.img);
-            ImgData=reshape(DynPET.img,prod(temp(1:3)),temp(4));
-            for ROI=fieldnames(maskidx)'
-                TACDATA.(ROI{1}).LongName=maskidx.(ROI{1}).LongName;
-                for Hemi={'Left','Right','Bilateral'}
-                    maskidxcur = maskidx.(ROI{1}).(Hemi{1});
-                    TACDATA.(ROI{1}).(Hemi{1}).vol=length(maskidxcur)*(1-TrimPerc/100);
-                    TACDATA.(ROI{1}).(Hemi{1}).tac=trimmean(ImgData(maskidxcur,:),TrimPerc)';
-                end
-                
-            end
-            TACDATA.info = 'Baseline';
-            save([ paths.TACs num2str(IDs(id)) num2str(d) '_TACDATA_Baseline.mat'],'TACDATA'); clear TACDATA DynPET temp ImgData
+%             
+%             % baseline
+%             DynPET=load_nii(PETbsl);
+%             temp=size(DynPET.img);
+%             ImgData=reshape(DynPET.img,prod(temp(1:3)),temp(4));
+%             for ROI=fieldnames(maskidx)'
+%                 TACDATA.(ROI{1}).LongName=maskidx.(ROI{1}).LongName;
+%                 for Hemi={'Left','Right','Bilateral'}
+%                     maskidxcur = maskidx.(ROI{1}).(Hemi{1});
+%                     TACDATA.(ROI{1}).(Hemi{1}).vol=length(maskidxcur)*(1-TrimPerc/100);
+%                     TACDATA.(ROI{1}).(Hemi{1}).tac=trimmean(ImgData(maskidxcur,:),TrimPerc)';
+%                 end
+%                 
+%             end
+%             TACDATA.info = 'Baseline';
+%             save([ paths.TACs num2str(IDs(id)) num2str(d) '_TACDATA_Baseline.mat'],'TACDATA'); clear TACDATA DynPET temp ImgData
         end
     end
 end
 
-
+%%
 clear id d
 
-for id = 1:length(IDs)
+for id = 3:length(IDs)
     
     for d = 1:2
         
@@ -494,11 +479,10 @@ for id = 1:length(IDs)
         else
             % Freesurfer segmentation, if .mgh use mri_read from FreeSurfer/Matlab
             clear Mask CurPET_task CurPET_flow CurPET_BSL
-            Mask2   =[ paths.seg num2str(IDs(id)) num2str(d) '2/mri/aparc+aseg.nii']; % task and the baseline
+            Mask2   =[ paths.seg num2str(IDs(id)) num2str(d) '2/aparc+aseg.nii']; % task and the baseline
             
             % 4-D PET file
             PETtask = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/c' num2str(IDs(id)) '_PET_4D_MT' num2str(days(id,d)) '.nii'];
-%             PETflow = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/k' num2str(IDs(id)) '_PET_4D_InFlow' num2str(days(id,d)) '.nii'];
             PETbsl  = [paths.preproc num2str(IDs(id)) '_' num2str(days(id,d)) '/c' num2str(IDs(id)) '_PET_4D_Baseline' num2str(days(id,d)) '.nii'];
             
             %% Read in FreeSurfer mask data
@@ -608,10 +592,108 @@ for id = 1:length(IDs)
 end
 
 
-%% plot TACs and save
-close all;
-Appointments = [1 2 1 2 1 1 2];
+%% retro correct the decay
 
+
+% IDs     = [4008 4009 4010 4011 4012 4013 4014 4015];
+% days    = [1 2; 0 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 2]; 
+Appointments = [1 2 2 1 1 2 1 2];
+t0_frame_bsl    = 95;
+t0_frame_task   = 115;
+ 
+for id = 1:length(IDs)
+    
+    for d = 1:2
+        
+        if days(id,d) == 0
+            warning('Skipped')
+        else
+            
+            load([ paths.TACs num2str(IDs(id)) num2str(d) '_TACDATA_InFlow.mat']);
+            TACDATA_InFlow=TACDATA; clear TACDATA
+            load([ paths.TACs num2str(IDs(id)) num2str(d) '_TACDATA_Baseline.mat']);
+            TACDATA_Baseline=TACDATA; clear TACDATA
+            load([ paths.TACs num2str(IDs(id)) num2str(d) '_TACDATA_Task.mat']);
+            TACDATA_Task=TACDATA; clear TACDATA
+            
+            Lengths=[10*ones(30,1); 60*ones(55,1)];
+            tt1=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)]; clear Lengths
+            Lengths=60*ones(15,1);
+            tt2=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)]; clear Lengths
+            Lengths=300*ones(11,1);
+            tt3=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)]; clear Lengths
+            Times=[tt1; tt2+95*60; tt3+115*60];
+            
+            
+            clear fields
+            fields = fieldnames(TACDATA_InFlow);
+            for f1 = 1:length(fields)
+                if strcmp((fields{f1}),'info')
+                    disp('info field skipped')
+                else
+                    % bilaterals
+                    TACDATA_Baseline.(fields{f1}).Bilateral.tac=(TACDATA_Baseline.(fields{f1}).Bilateral.tac).*(2^(t0_frame_bsl/109));
+                    TACDATA_Task.(fields{f1}).Bilateral.tac=(TACDATA_Task.(fields{f1}).Bilateral.tac).*(2^(t0_frame_task/109));
+                    
+                    % lefts
+                    TACDATA_Baseline.(fields{f1}).Left.tac=(TACDATA_Baseline.(fields{f1}).Left.tac).*(2^(t0_frame_bsl/109));
+                    TACDATA_Task.(fields{f1}).Left.tac=(TACDATA_Task.(fields{f1}).Left.tac).*(2^(t0_frame_task/109));
+                    
+                    % rights
+                    TACDATA_Baseline.(fields{f1}).Right.tac=(TACDATA_Baseline.(fields{f1}).Right.tac).*(2^(t0_frame_bsl/109));
+                    TACDATA_Task.(fields{f1}).Right.tac=(TACDATA_Task.(fields{f1}).Right.tac).*(2^(t0_frame_task/109));
+                end
+            end
+            
+            save(['/Users/yeojin/Desktop/E_data/EA_raw/EAD_PET/EADC_TACs/RewardTask_decaycorrected/' num2str(IDs(id)) num2str(d) '_TACs_deccorr.mat'],'TACDATA_Baseline','TACDATA_InFlow','TACDATA_Task');
+            
+            
+            
+            Lengths=[10*ones(30,1); 60*ones(55,1)];
+            tt1=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)]; clear Lengths
+            Lengths=60*ones(15,1);
+            tt2=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)]; clear Lengths
+            Lengths=300*ones(11,1);
+            tt3=[[0;cumsum(Lengths(1:end-1))], cumsum(Lengths)]; clear Lengths
+            Times=[tt1; tt2+95*60; tt3+115*60]
+            try
+                
+                Cer=[TACDATA_InFlow.CerC.Bilateral.tac; TACDATA_Baseline.CerC.Bilateral.tac; TACDATA_Task.CerC.Bilateral.tac];
+                Put=[TACDATA_InFlow.Put.Bilateral.tac; TACDATA_Baseline.Put.Bilateral.tac; TACDATA_Task.Put.Bilateral.tac];
+                Caud=[TACDATA_InFlow.Caud.Bilateral.tac; TACDATA_Baseline.Caud.Bilateral.tac; TACDATA_Task.Caud.Bilateral.tac];
+                tmid=mean(Times,2)/60;
+                
+                % now draw
+                figure('Renderer', 'painters ')
+                plot(tmid,Cer,'ko-',tmid,Put,'ro-',tmid,Caud,'bo-');
+                xlabel('Time (min)'); ylabel('Radioactivity (Bq/mL)');
+                legend('Cerebellum','Putamen','Caudate');
+                ax = gca; ax.YAxis.Exponent = 0;
+            catch
+                
+                Cer=[vertcat(nan(9,1),TACDATA_InFlow.CerC.Bilateral.tac); TACDATA_Baseline.CerC.Bilateral.tac; TACDATA_Task.CerC.Bilateral.tac];
+                Put=[vertcat(nan(9,1),TACDATA_InFlow.Put.Bilateral.tac); TACDATA_Baseline.Put.Bilateral.tac; TACDATA_Task.Put.Bilateral.tac];
+                Caud=[vertcat(nan(9,1),TACDATA_InFlow.Caud.Bilateral.tac); TACDATA_Baseline.Caud.Bilateral.tac; TACDATA_Task.Caud.Bilateral.tac];
+                tmid=mean(Times,2)/60;
+                
+                % now draw
+                figure('Renderer', 'painters ')
+                plot(tmid,Cer,'ko-',tmid,Put,'ro-',tmid,Caud,'bo-');
+                xlabel('Time (min)'); ylabel('Radioactivity (Bq/mL)');
+                legend('Cerebellum','Putamen','Caudate');
+                ax = gca; ax.YAxis.Exponent = 0;
+                
+            end
+            
+            
+        end
+    end
+end
+
+
+%% plot TACs and save
+
+close all
 
 for id = 1:length(IDs)
     
@@ -637,9 +719,9 @@ for id = 1:length(IDs)
             Times=[tt1; tt2+95*60; tt3+115*60];
             
             try
-                Cer=[TACDATA_InFlow.CerC.Bilateral.tac; TACDATA_Baseline.CerC.Bilateral.tac; TACDATA_Task.CerC.Bilateral.tac];
-                Put=[TACDATA_InFlow.Put.Bilateral.tac; TACDATA_Baseline.Put.Bilateral.tac; TACDATA_Task.Put.Bilateral.tac];
-                Caud=[TACDATA_InFlow.Caud.Bilateral.tac; TACDATA_Baseline.Caud.Bilateral.tac; TACDATA_Task.Caud.Bilateral.tac];
+                Cer=[TACDATA_InFlow.CerC.Bilateral.tac; (TACDATA_Baseline.CerC.Bilateral.tac).*(2^(t0_frame_bsl/109)); (TACDATA_Task.CerC.Bilateral.tac).*(2^(t0_frame_task/109))];
+                Put=[TACDATA_InFlow.Put.Bilateral.tac; (TACDATA_Baseline.Put.Bilateral.tac).*(2^(t0_frame_bsl/109)); (TACDATA_Task.Put.Bilateral.tac).*(2^(t0_frame_task/109))];
+                Caud=[TACDATA_InFlow.Caud.Bilateral.tac; (TACDATA_Baseline.Caud.Bilateral.tac).*(2^(t0_frame_bsl/109)); (TACDATA_Task.Caud.Bilateral.tac).*(2^(t0_frame_task/109))];
                 tmid=mean(Times,2)/60;
                 
                 % now draw
@@ -659,9 +741,9 @@ for id = 1:length(IDs)
                 print('-dpdf','-bestfit', fullfile(paths.figures, [ num2str(IDs(id)) num2str(d) '_TAC.pdf']));
                 
             catch
-                Cer=[vertcat(nan(9,1),TACDATA_InFlow.CerC.Bilateral.tac); TACDATA_Baseline.CerC.Bilateral.tac; TACDATA_Task.CerC.Bilateral.tac];
-                Put=[vertcat(nan(9,1),TACDATA_InFlow.Put.Bilateral.tac); TACDATA_Baseline.Put.Bilateral.tac; TACDATA_Task.Put.Bilateral.tac];
-                Caud=[vertcat(nan(9,1),TACDATA_InFlow.Caud.Bilateral.tac); TACDATA_Baseline.Caud.Bilateral.tac; TACDATA_Task.Caud.Bilateral.tac];
+                Cer=[vertcat(nan(9,1),TACDATA_InFlow.CerC.Bilateral.tac); (TACDATA_Baseline.CerC.Bilateral.tac).*(2^(t0_frame_bsl/109)); (TACDATA_Task.CerC.Bilateral.tac).*(2^(t0_frame_task/109))];
+                Put=[vertcat(nan(9,1),TACDATA_InFlow.Put.Bilateral.tac); (TACDATA_Baseline.Put.Bilateral.tac).*(2^(t0_frame_bsl/109)); (TACDATA_Task.Put.Bilateral.tac).*(2^(t0_frame_task/109))];
+                Caud=[vertcat(nan(9,1),TACDATA_InFlow.Caud.Bilateral.tac); (TACDATA_Baseline.Caud.Bilateral.tac).*(2^(t0_frame_bsl/109)); (TACDATA_Task.Caud.Bilateral.tac).*(2^(t0_frame_task/109))];
                 tmid=mean(Times,2)/60;
                 
                 % now draw

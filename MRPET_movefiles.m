@@ -3,7 +3,7 @@
 %% preparation
 
 close all;clc;clear;
-warning('off','all');
+% warning('off','all');
 
 % paths
 % paths
@@ -11,11 +11,11 @@ paths = [];
 paths.parent      = '/Users/yeojin/Desktop/';
 paths.raw         = [paths.parent 'E_data/EA_raw/EAD_PET/EADY_originals/DOPE/'];
 paths.source      = [paths.parent 'E_data/EA_raw/EAD_PET/EADB_preprocessed/RewardTask/'];
-paths.destination = [paths.parent 'E_data/EA_raw/EAB_MRI/EABD_segmented/transmat/'];
+paths.destination = [paths.parent 'E_data/EA_raw/EAD_PET/EADD_segmented/transmat/'];
 
 % IDs
-IDs = [4001 4002 4003 4004 4005 4006 4007];
-days = [1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0]; 
+IDs = [4008 4009 4010 4011 4012 4013 4014 4015];
+days = [1 2; 1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 2]; 
 
 %% move T1 whole-brain images for FSL segmentation
 % info: ID # # # #   #       #
@@ -37,10 +37,10 @@ for id = 1:length(IDs)
                 clear src destination
                 % from
                 src = [paths.source num2str(IDs(id)) '_' num2str(d) '/' num2str(IDs(id)) ...
-                    '_MRI_4D_MPRAGE' num2str(d) '_pt' num2str(pts) '.nii'];
+                    '_MRI_4D_MPRAGE' num2str(d) '_pt' num2str(pts) '.nii']
                 % to
                 mkdir([paths.destination num2str(IDs(id)) num2str(d) num2str(pts)])
-                destination = [paths.destination num2str(IDs(id)) num2str(d) num2str(pts) '/T1WB.nii'];
+                destination = [paths.destination num2str(IDs(id)) num2str(d) num2str(pts) '/T1WB.nii']
                 
                 copyfile(src,destination)
                 

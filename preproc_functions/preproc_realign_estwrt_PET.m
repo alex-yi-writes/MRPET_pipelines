@@ -17,8 +17,8 @@ matlabbatch{1}.spm.spatial.realign.estwrite.data = {flist};
 matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.quality = 0.9;
 matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.sep = 4;
 matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.fwhm = 7; % 7mm smoothing is typical for PET images
-matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.rtm = 1;
-matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.interp = 4; % 4th degree
+matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.rtm = 0; % register to first
+matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.interp = 7; % 4th degree
 matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.wrap = [0 0 0];
 matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.weight = '';
 
