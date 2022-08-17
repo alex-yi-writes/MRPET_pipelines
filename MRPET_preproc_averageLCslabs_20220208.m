@@ -9,14 +9,16 @@ paths=[];
 paths.original='/Users/yeojin/Desktop/E_data/EA_raw/EAD_PET/EADY_originals/DOPE/';
 paths.converted='/Users/yeojin/Desktop/E_data/EA_raw/EAD_PET/EADB_preprocessed/LCaverage/';
 
-IDs = [4001 4002 4003 4004 4005 4006 4007 4008 4009 4010 4011 4012 4013 4014 4015 4016 4017];
-days = [1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0; 1 2; 0 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 2; 1 2; 1 2];
+% IDs = [4001 4002 4003 4004 4005 4006 4007 4008 4009 4010 4011 4012 4013 4014 4015 4016 4017];
+% days = [1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0; 1 2; 0 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 2; 1 2; 1 2];
 
+IDs  = [4017 4018 4019 4020 4021 4022 4023 4024 4026];
+days = [1 2; 1 2; 1 0; 1 2; 0 2; 0 2; 1 0; 1 0; 0 2]; 
 
 %% convert images, use dcm2nii
 
 
-for id=2:length(IDs)
+for id=1:length(IDs)
     
     series=0; % reset the series number
     eval(['!mkdir ' paths.converted '/' num2str(IDs(id))])
@@ -63,7 +65,7 @@ end
 
 %% coregister and average
 
-for id=2:length(IDs)
+for id=1:length(IDs)
     
     if sum(days(id,:))==3
         series=2:4;
