@@ -3,33 +3,17 @@
 clc;clear;
 
 % IDs
-% IDs         = [4001 4002 4003 4004 4005 4006 4007 4008 4009 4010 4011 4012 4013 4014 4015 4016 4017 4018 4019 4020 4021 4022 4023 4024 4026];
-% days        = [1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0; 1 2; 0 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 2; 1 2; 1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0; 1 0; 0 2];
+% IDs         = [4001 4002 4003 4004 4005 4006 4007 4008 4009 4010 4011 4012 4013 4014 4015 4016];
+% days        = [1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0; 1 2; 0 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 2; 1 2];
 
-IDs  = [4011];
+IDs = [4017];
 days = [0 2]; 
-
-for id=1:length(IDs)
-    for d=1:2
-        if days(id,d)==0
-            warning('skipped')
-        else
-
-            for pt=1:2
-
-                copyfile(['/Users/yeojin/Desktop/E_data/EA_raw/EAD_PET/EADB_preprocessed/RewardTask/' num2str(IDs(id)) '_' num2str(d) '/' num2str(IDs(id)) '_MRI_4D_MPRAGE' num2str(d) '_pt' num2str(pt) '.nii'],...
-                    ['/Users/yeojin/Desktop/E_data/EA_raw/EAD_PET/EADB_preprocessed/RewardTask/T1WB_' num2str(IDs(id)) num2str(d) num2str(pt) '.nii'])
-            end
-        end
-    end
-
-end
 
 % set env
 path_parent = '/Users/yeojin/Desktop/E_data/EA_raw/EAD_PET/EADB_preprocessed/RewardTask/';
 path_segs   = '/Users/yeojin/Desktop/E_data/EA_raw/EAD_PET/EADD_segmented/';
 
-setenv('PATH', [getenv('PATH') ':/Applications/freesurfer/mni/bin:/usr/local/bin']);
+setenv('PATH', [getenv('PATH') ':/Applications/freesurfer/mni/bin:/usr/local/antsbin/bin']);
 setenv('ANTSPATH','/usr/local/bin')
 
 %% convert seg files
@@ -42,8 +26,8 @@ for id=1:length(IDs)
         else
             
 
-            movefile([path_segs num2str(IDs(id)) num2str(d) '1/T1.nii'], [path_parent num2str(IDs(id)) '_' num2str(d) '/T1pt1.nii'])
-            movefile([path_segs num2str(IDs(id)) num2str(d) '2/T1.nii'], [path_parent num2str(IDs(id)) '_' num2str(d) '/T1pt2.nii'])
+            movefile([path_segs num2str(IDs(id)) num2str(d) '1/T1WB.nii'], [path_parent num2str(IDs(id)) '_' num2str(d) '/T1pt1.nii'])
+            movefile([path_segs num2str(IDs(id)) num2str(d) '2/T1WB.nii'], [path_parent num2str(IDs(id)) '_' num2str(d) '/T1pt2.nii'])
             movefile([path_segs num2str(IDs(id)) num2str(d) '1/aparc+aseg.nii'], [path_parent num2str(IDs(id)) '_' num2str(d) '/aparc+aseg_pt1.nii'])
             movefile([path_segs num2str(IDs(id)) num2str(d) '2/aparc+aseg.nii'], [path_parent num2str(IDs(id)) '_' num2str(d) '/aparc+aseg_pt2.nii'])
         end
@@ -116,7 +100,7 @@ end
 
 %% first, realign and create
 
-for id=2%[1:5 7:length(IDs)]
+for id=1%[1:5 7:length(IDs)]
     
     for d=1:2
         if days(id,d)==0

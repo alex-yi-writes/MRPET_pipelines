@@ -25,7 +25,7 @@ paths.behav   = '/Users/yeojin/Desktop/E_data/EA_raw/EAC_behav/MRPET/';
 paths.seg     = [paths.parent 'E_data/EA_raw/EAB_MRI/EABD_segmented/'];
 paths.TACs    = [paths.parent 'E_data/EA_raw/EAD_PET/EADC_TACs/RewardTask/'];
 paths.figures = [paths.parent 'C_writings/CB_figures/MRPET/MainTask/TACs/'];
-paths.physraw = [paths.parent 'E_data/EA_raw/EAE_physio/physio/'];
+paths.physraw = [paths.parent 'E_data/EA_raw/EAE_physio/MRPET/'];
 
 % add toolboxes and functions
 % addpath(genpath('/Users/yeojin/Documents/MATLAB/spm12'))
@@ -33,8 +33,11 @@ addpath(paths.funx_MRI)
 addpath(paths.funx_PET)
 
 % IDs
-IDs = [4001 4002 4003 4004 4005 4006];
-days = [1 2; 1 2; 1 0; 1 2; 1 2; 0 2];
+% IDs  = [4001 4002 4003 4004 4005 4006 4007 4008 4009 4010 4011 4012 4013 4014 4015 4016 4017 4018 4019 4020 4021 4022 4023 4024 4026];
+% days = [1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0; 1 2; 0 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 2; 1 2; 1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0; 1 0; 0 2];
+IDs=[4007];
+days=[1 0];
+
 
 % load experimental details
 expdat = [];
@@ -44,6 +47,7 @@ for i1 = 1:length(IDs)
             fname_beh{i1,d} = {NaN};
             expdat{i1,d} = {NaN};
         else
+            mkdir([paths.physraw num2str(IDs(i1)) num2str(d)])
             fname_beh{i1,d}     = [ num2str(IDs(i1)) '_' num2str(days(i1,d)) '.mat' ];
             expdat{i1,d} = load([paths.behav fname_beh{i1,d}]);
         end
@@ -64,13 +68,24 @@ for id = 1:length(IDs)
             resp{id,d} = [];
             scan{id,d} = [];
         else
-            clear tmp1 tmp2 tmp3
-            tmp1 = dir([paths.physraw num2str(IDs(id)) num2str(d) '/*PULS.log']);
-            puls{id,d} = fullfile(tmp1.folder,tmp1.name);
-            tmp2 = dir([paths.physraw num2str(IDs(id)) num2str(d) '/*RESP.log']);
+            if (IDs(id) == 4007 && d==1) ||  (IDs(id) == 4009 && d==2) || ...
+                    (IDs(id) == 4012 && d==1) || (IDs(id) == 4013 && d==2)% this id has only resp and info!
+            tmp2 = dir([paths.physraw num2str(IDs(id)) num2str(d) '/*/*RESP.log']);
             resp{id,d} = fullfile(tmp2.folder,tmp2.name);
-            tmp3 = dir([paths.physraw num2str(IDs(id)) num2str(d) '/*Info.log']);
+            puls{id,d} = [];
+            resp{id,d} = [];
+            tmp3 = dir([paths.physraw num2str(IDs(id)) num2str(d) '/*/*Info.log']);
             scan{id,d} = fullfile(tmp3.folder,tmp3.name);
+
+            else
+            clear tmp1 tmp2 tmp3
+            tmp1 = dir([paths.physraw num2str(IDs(id)) num2str(d) '/*/*PULS.log']);
+            puls{id,d} = fullfile(tmp1.folder,tmp1.name);
+            tmp2 = dir([paths.physraw num2str(IDs(id)) num2str(d) '/*/*RESP.log']);
+            resp{id,d} = fullfile(tmp2.folder,tmp2.name);
+            tmp3 = dir([paths.physraw num2str(IDs(id)) num2str(d) '/*/*Info.log']);
+            scan{id,d} = fullfile(tmp3.folder,tmp3.name);
+            end
         end
     end
 end
@@ -91,7 +106,12 @@ for id = 1:length(IDs)
             
             matlabbatch{1}.spm.tools.physio.save_dir = {['/Users/yeojin/Desktop/E_data/EB_cleaned/EBD_mrpet/RewardTask/physio/' num2str(IDs(id)) num2str(days(id,d)) '/']};
             matlabbatch{1}.spm.tools.physio.log_files.vendor = 'Siemens_Tics';
+            if (IDs(id) == 4007 && d==1) ||  (IDs(id) == 4009 && d==2) || ...
+                    (IDs(id) == 4012 && d==1) || (IDs(id) == 4013 && d==2)% this id has only resp and info!
+            matlabbatch{1}.spm.tools.physio.log_files.cardiac = '<UNDEFINED>';
+            else
             matlabbatch{1}.spm.tools.physio.log_files.cardiac = puls(id,d);
+            end
             matlabbatch{1}.spm.tools.physio.log_files.respiration = resp(id,d);
             matlabbatch{1}.spm.tools.physio.log_files.scan_timing = scan(id,d);
             matlabbatch{1}.spm.tools.physio.log_files.sampling_interval = [];

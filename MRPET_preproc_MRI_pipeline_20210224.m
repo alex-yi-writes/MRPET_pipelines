@@ -33,8 +33,13 @@ addpath(paths.funx_PET)
 
 % IDs
 
-IDs = [4017 4018 4019 4020 4021 4022 4023 4024 4026];
-days = [0 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0; 1 0; 0 2]; 
+% IDs = [4017 4018 4019 4020 4021 4022 4023 4024 4026];
+% days = [0 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0; 1 0; 0 2]; 
+% IDs
+IDs  = [4001 4002 4003 4004 4005 4006 4007 4008 4009 4010 4011 4012 4013 4014 4015 4016 4017 4018 4019 4020 4021 4022 4023 4024 4025 4026 4027 4028];
+days = [1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0; 1 2; 0 2; 1 2; 1 2; 1 2; 1 2; 0 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 0; 1 2; 1 2; 1 2; 1 0; 1 0];
+d1m  = [1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 0; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 0 0; 1 2; 1 2; 1 2; 1 2; 1 2]; % 1=immediate 2=delayed
+d2m  = [1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 0; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 1 2; 0 0; 1 2; 1 2; 1 2; 1 2; 1 2]; 
 
 
 % load experimental details
@@ -71,9 +76,9 @@ fprintf('\n preparation done \n')
 
 clear id d
 
-for id = 4:length(IDs)
+for id = 27:28%1:length(IDs)
     
-    for d = 2%1:2
+    for d = 1:2
         
         if days(id,d) == 0
             warning('Skipped')
@@ -299,4 +304,106 @@ for id = 4:length(IDs)
     
 end
 
+%% merge series - highDA+lowDA
+
+
+for id = 1:length(IDs) 
+    
+    mkdir([paths.preproc num2str(IDs(id))])   
+    
+    clear matlabbatch fMRI1 fMRI2 volnum1 volnum2 list_scan
+
+    if days(id,1) == 1
+
+        copyfile([paths.preproc num2str(IDs(id)) '_1/ua' num2str(IDs(id)) '_MRI_4D_MT1.nii'],...
+            [paths.preproc num2str(IDs(id)) '/ua' num2str(IDs(id)) 'func1.nii'])
+
+        clear matlabbatch
+        spm_jobman('initcfg')
+        matlabbatch{1}.spm.util.split.vol = {[paths.preproc num2str(IDs(id)) '/ua' num2str(IDs(id)) 'func1.nii']};
+        matlabbatch{1}.spm.util.split.outdir = {[paths.preproc num2str(IDs(id))]};
+        spm_jobman('run',matlabbatch)
+
+        volnum1 = length(spm_vol([paths.preproc num2str(IDs(id)) '/ua' num2str(IDs(id)) 'func1.nii']));
+        list_scan1=[];
+        for v1 = 1:volnum1
+            list_scan1{v1,1} = [paths.preproc num2str(IDs(id)) '/ua' num2str(IDs(id)) 'func1.nii,' num2str(v1)];
+        end
+    end
+
+    if days(id,2) == 2
+
+        copyfile([paths.preproc num2str(IDs(id)) '_2/ua' num2str(IDs(id)) '_MRI_4D_MT2.nii'],...
+            [paths.preproc num2str(IDs(id)) '/ua' num2str(IDs(id)) 'func2.nii'])
+
+        clear matlabbatch
+        spm_jobman('initcfg')
+        matlabbatch{1}.spm.util.split.vol = {[paths.preproc num2str(IDs(id)) '/ua' num2str(IDs(id)) 'func2.nii']};
+        matlabbatch{1}.spm.util.split.outdir = {[paths.preproc num2str(IDs(id))]};
+        spm_jobman('run',matlabbatch)
+
+        volnum2 = length(spm_vol([paths.preproc num2str(IDs(id)) '/ua' num2str(IDs(id)) 'func2.nii']));
+        list_scan2=[];
+        for v2 = 1:volnum2
+            list_scan2{v2,1} = [paths.preproc num2str(IDs(id)) '/ua' num2str(IDs(id)) 'func2.nii,' num2str(v2)];
+        end
+    end
+
+    if sum(days(id,:)) == 3
+
+        clear files3D
+        files3D = [list_scan1;list_scan2];
+        cd([paths.preproc num2str(IDs(id))])
+        clear matlabbatch
+        spm_jobman('initcfg')
+        matlabbatch{1}.spm.util.cat.vols = files3D;
+        matlabbatch{1}.spm.util.cat.name = [ 'all_ua' num2str(IDs(id)) '.nii'];
+        matlabbatch{1}.spm.util.cat.dtype = 4;
+        matlabbatch{1}.spm.util.cat.RT = 3.6;
+        spm_jobman('run',matlabbatch)
+        eval(['!rm ' paths.preproc num2str(IDs(id)) '/ua4*.nii']);
+
+        volnum = length(spm_vol([paths.preproc num2str(IDs(id)) '/all_ua' num2str(IDs(id)) '.nii']));
+        list_scan=[];
+        for va = 1:volnum
+            list_scan{va,1} = [paths.preproc num2str(IDs(id)) '/all_ua' num2str(IDs(id)) '.nii,' num2str(va)];
+        end
+
+        clear matlabbatch
+
+        spm_jobman('initcfg')
+        matlabbatch{1}.spm.spatial.realign.estwrite.data = {list_scan}';
+        matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.quality = 0.9;
+        matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.sep = 4;
+        matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.fwhm = 5;
+        matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.rtm = 1;
+        matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.interp = 2;
+        matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.wrap = [0 0 0];
+        matlabbatch{1}.spm.spatial.realign.estwrite.eoptions.weight = '';
+        matlabbatch{1}.spm.spatial.realign.estwrite.roptions.which = [2 1];
+        matlabbatch{1}.spm.spatial.realign.estwrite.roptions.interp = 4;
+        matlabbatch{1}.spm.spatial.realign.estwrite.roptions.wrap = [0 0 0];
+        matlabbatch{1}.spm.spatial.realign.estwrite.roptions.mask = 1;
+        matlabbatch{1}.spm.spatial.realign.estwrite.roptions.prefix = 'r';
+        spm_jobman('run',matlabbatch)
+
+        list_realigned=[];
+        for vall=1:length(list_scan)
+            list_realigned{vall,1} = [paths.preproc num2str(IDs(id)) '/rall_ua' num2str(IDs(id)) '.nii,' num2str(vall)];
+        end
+
+        [config] = preproc_smoothe(IDs(id),list_realigned,3);
+
+    elseif sum(days(id,:)) == 1
+        list_scan=list_scan1;
+        [config] = preproc_smoothe(IDs(id),list_scan,3);
+        eval(['!rm ' paths.preproc num2str(IDs(id)) '/ua4*.nii']);
+
+    elseif sum(days(id,:)) == 2
+        list_scan=list_scan2;
+        [config] = preproc_smoothe(IDs(id),list_scan,3);
+        eval(['!rm ' paths.preproc num2str(IDs(id)) '/ua4*.nii']);
+    end
+
+end
 

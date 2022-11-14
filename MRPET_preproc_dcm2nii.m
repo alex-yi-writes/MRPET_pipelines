@@ -31,8 +31,8 @@ paths.dcm2nii = '/Applications/MRIcron.app/Contents/Resources/dcm2niix'; % speci
 addpath(paths.funx)  % those two are useless for now
 
 % IDs & sessions
-% IDs = [4001 4002 4003 4004 4005 4006 4007];
-% days = [1 2; 1 2; 1 0; 1 2; 1 2; 0 2; 1 0]; 
+IDs  = [4027 4028];
+days = [1 0; 1 0]; 
 load('/Users/yeojin/Desktop/E_data/EA_raw/EAD_PET/ID_KZ.mat')
 
 
@@ -50,7 +50,7 @@ PET_filenames = {'InFlow';'Baseline'};
 
 %% run
 
-for id = 42:length(ID_KZ)
+for id = [50:51]%1:length(ID_KZ)
 
     for imc = 1:length(filetypes_MRI)
 
@@ -242,7 +242,7 @@ clear filetypes_MRI MRI_filenames
 filetypes_MRI = {'MPRAGE'};
 MRI_filenames = {'MPRAGE'};
 
-for id = 35:length(ID_KZ)
+for id = [50:51]%1:length(ID_KZ)
 
     for imc = 1:length(filetypes_MRI)
         fprintf('\n %s, %s \n', 'MPRAGE', MRI_filenames{imc})
@@ -438,9 +438,9 @@ end
 %% PET part: other
 %% run
 
-for id = 30:length(ID_KZ)
+for id = [51]%1:length(ID_KZ)
 
-    for imc = 1:length(filetypes_PET)
+    for imc = 1%1:length(filetypes_PET)
         fprintf('\n %s, %s \n', filetypes_PET{imc}, PET_filenames{imc})
 
 
@@ -635,7 +635,7 @@ binname       = {'T0';'T300';'T600';'T900';'T1200';'T1500';'T1800';'T2100';'T240
 seriesnum     = numel(~isnan(cell2mat(strfind(filetypes_pTask,'Task')))); % see how many binned PET data there are
 binsize       = 300; % how long are the time bins for now?
 
-for id = 30:length(ID_KZ)
+for id = [40]%1:length(ID_KZ)
 
     for imc = 1:length(filetypes_pTask)
         fprintf('\n %s \n', [filetypes_pTask{imc} num2str((imc-1)*binsize)])
@@ -708,7 +708,7 @@ end
 
 % now make 4D volume out of PET-task data
 
-for id = 30:length(ID_KZ)
+for id = [40]%1:length(ID_KZ)
 
     %             try
     flist_PET = [];
@@ -740,5 +740,55 @@ for id = 30:length(ID_KZ)
     %                 fprintf('\n error: ID: %d\n', ID_KZ{id,1})
     %
     %             end
+
+end
+
+%%
+
+c1=0;
+for id=[50:51]
+    c1=c1+1;
+    IDID{c1}=[ID_KZ{id,1}(1:4) ID_KZ{id,1}(5) '1'];
+    c1=c1+1;
+    IDID{c1}=[ID_KZ{id,1}(1:4) ID_KZ{id,1}(5) '2'];
+
+    mkdir(['/Users/yeojin/Desktop/E_data/ED_coreg/mrpetseg/' ID_KZ{id,1}(1:4) ID_KZ{id,1}(5) '1/'])
+    copyfile(['/Users/yeojin/Desktop/E_data/EA_raw/EAD_PET/EADB_preprocessed/RewardTask/' ID_KZ{id,1}(1:4) '_' ID_KZ{id,1}(5) '/' ID_KZ{id,1}(1:4) '_MRI_4D_MPRAGE'  ID_KZ{id,1}(5) '_pt1.nii'],...
+        ['/Users/yeojin/Desktop/E_data/ED_coreg/mrpetseg/' ID_KZ{id,1}(1:4) ID_KZ{id,1}(5) '1/T1pt1.nii'])
+
+    mkdir(['/Users/yeojin/Desktop/E_data/ED_coreg/mrpetseg/' ID_KZ{id,1}(1:4) ID_KZ{id,1}(5) '2/'])
+    copyfile(['/Users/yeojin/Desktop/E_data/EA_raw/EAD_PET/EADB_preprocessed/RewardTask/' ID_KZ{id,1}(1:4) '_' ID_KZ{id,1}(5) '/' ID_KZ{id,1}(1:4) '_MRI_4D_MPRAGE'  ID_KZ{id,1}(5) '_pt2.nii'],...
+        ['/Users/yeojin/Desktop/E_data/ED_coreg/mrpetseg/' ID_KZ{id,1}(1:4) ID_KZ{id,1}(5) '2/T1pt2.nii'])
+
+
+    cd('/Users/yeojin/Desktop/E_data/ED_coreg/scripts')
+
+    insert_here = 9;
+
+    fid = fopen( 'mrpetseg_pt1base.sh' );
+    cac = textscan( fid,'%s', 'Delimiter','\n','CollectOutput',true );
+    fclose( fid )
+    fid = fopen( ['mrpetseg' ID_KZ{id,1}(1:4) ID_KZ{id,1}(5) '1.sh'], 'w');
+    for jj = 1 : insert_here
+        fprintf( fid, '%s\n', cac{1}{jj} );
+    end
+    fprintf( fid, '%s\n', ['ID=' ID_KZ{id,1}(1:4) ID_KZ{id,1}(5) '1'] );
+    for jj = insert_here+1 : length(cac{1})
+        fprintf( fid,'%s\n', cac{1}{jj} );
+    end
+    fclose( fid );
+
+    fid = fopen( 'mrpetseg_pt2base.sh' );
+    cac = textscan( fid,'%s', 'Delimiter','\n','CollectOutput',true );
+    fclose( fid )
+    fid = fopen( ['mrpetseg' ID_KZ{id,1}(1:4) ID_KZ{id,1}(5) '2.sh'], 'w');
+    for jj = 1 : insert_here
+        fprintf( fid, '%s\n', cac{1}{jj} );
+    end
+    fprintf( fid, '%s\n', ['ID=' ID_KZ{id,1}(1:4) ID_KZ{id,1}(5) '2'] );
+    for jj = insert_here+1 : length(cac{1})
+        fprintf( fid,'%s\n', cac{1}{jj} );
+    end
+    fclose( fid );
 
 end
