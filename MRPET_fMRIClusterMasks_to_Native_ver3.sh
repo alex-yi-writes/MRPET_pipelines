@@ -18,11 +18,11 @@ do
 
     #pt 1
     #antsRegistrationSyNQuick.sh -n 4 -d 3 -f ${template} -m "${path}"/data/T1pt1.nii -t s -o "${path}"/NLreg_T1pt1_to_template_
-    antsApplyTransforms -d 3 -v 1 -n NearestNeighbor -r "${path}"/data/T1pt1.nii -o "${path}"/data/"${maskname}".nii.gz -i "${mask}" -t /Volumes/korokdorf/MRPET/coreg_mri/eachsession/${ID}/data/NLreg_T1pt1_to_template_1InverseWarp.nii.gz -t [/Volumes/korokdorf/MRPET/coreg_mri/eachsession/${ID}/data/NLreg_T1pt1_to_template_0GenericAffine.mat,1] -t /Volumes/korokdorf/MRPET/coreg_mri/eachsession/NLreg_MNI_to_template_1Warp.nii.gz -t /Volumes/korokdorf/MRPET/coreg_mri/eachsession/NLreg_MNI_to_template_0GenericAffine.mat
+    antsApplyTransforms -d 3 -v 1 -n NearestNeighbor -r "${path}"/data/T1pt1.nii -o "${path}"/data/"${maskname}"_on_T1pt1.nii.gz -i "${mask}" -t /Volumes/korokdorf/MRPET/coreg_mri/eachsession/${ID}/data/NLreg_T1pt1_to_template_1InverseWarp.nii.gz -t [/Volumes/korokdorf/MRPET/coreg_mri/eachsession/${ID}/data/NLreg_T1pt1_to_template_0GenericAffine.mat,1] -t /Volumes/korokdorf/MRPET/coreg_mri/eachsession/NLreg_MNI_to_template_1Warp.nii.gz -t /Volumes/korokdorf/MRPET/coreg_mri/eachsession/NLreg_MNI_to_template_0GenericAffine.mat
 
     #pt 2
     #antsRegistrationSyNQuick.sh -n 4 -d 3 -f ${template} -m "${path}"/data/T1pt2.nii -t s -o "${path}"/NLreg_T1pt2_to_template_
-    antsApplyTransforms -d 3 -v 1 -n NearestNeighbor -r "${path}"/data/T1pt2.nii -o "${path}"/data/"${maskname}".nii.gz -i "${mask}" -t /Volumes/korokdorf/MRPET/coreg_mri/eachsession/${ID}/data/NLreg_T1pt2_to_template_1InverseWarp.nii.gz -t [/Volumes/korokdorf/MRPET/coreg_mri/eachsession/${ID}/data/NLreg_T1pt2_to_template_0GenericAffine.mat,1] -t /Volumes/korokdorf/MRPET/coreg_mri/eachsession/NLreg_MNI_to_template_1Warp.nii.gz -t /Volumes/korokdorf/MRPET/coreg_mri/eachsession/NLreg_MNI_to_template_0GenericAffine.mat
+    antsApplyTransforms -d 3 -v 1 -n NearestNeighbor -r "${path}"/data/T1pt2.nii -o "${path}"/data/"${maskname}"_on_T1pt2.nii.gz -i "${mask}" -t /Volumes/korokdorf/MRPET/coreg_mri/eachsession/${ID}/data/NLreg_T1pt2_to_template_1InverseWarp.nii.gz -t [/Volumes/korokdorf/MRPET/coreg_mri/eachsession/${ID}/data/NLreg_T1pt2_to_template_0GenericAffine.mat,1] -t /Volumes/korokdorf/MRPET/coreg_mri/eachsession/NLreg_MNI_to_template_1Warp.nii.gz -t /Volumes/korokdorf/MRPET/coreg_mri/eachsession/NLreg_MNI_to_template_0GenericAffine.mat
   done
 
 done
